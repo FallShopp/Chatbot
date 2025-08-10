@@ -1,5 +1,3 @@
-// File: /api/gemini.js (Versi yang Disempurnakan dan Lebih Aman)
-
 // Konfigurasi ini memberitahu Vercel untuk menjalankan kode ini di Edge Network mereka yang cepat.
 export const config = {
   runtime: 'edge',
