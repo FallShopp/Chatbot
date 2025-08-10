@@ -10,7 +10,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const menuToggleButton = document.getElementById('menu-toggle-btn');
     const sidebar = document.getElementById('sidebar');
     const sidebarOverlay = document.getElementById('sidebar-overlay');
-
+    const themeSwitcher = document.getElementById('theme-switcher');
+    const clearHistoryBtn = document.getElementById('clear-history-btn');
+    const highlightThemeLight = document.getElementById('highlight-theme-light');
+    
     // --- STATE APLIKASI ---
     let chatHistory = [];
     let currentChatId = null;
@@ -18,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- FUNGSI INTI ---
 
     const startNewChat = () => {
-        currentChatId = null; // Set null agar pesan berikutnya membuat ID baru
+        currentChatId = null;
         chatBox.innerHTML = '';
         chatBox.appendChild(welcomeView);
         userInput.value = '';
@@ -32,28 +35,30 @@ document.addEventListener('DOMContentLoaded', () => {
         
         currentChatId = chatId;
         chatBox.innerHTML = '';
-        chat.messages.forEach(msg => tampilkanPesan(msg.text, msg.sender));
+        chat.messages.forEach(msg => tampilkanPesan(msg.text, msg.sender, msg.timestamp));
         renderChatHistory();
         chatBox.scrollTop = chatBox.scrollHeight;
-        // Sembunyikan sidebar di mobile setelah memilih chat
-        if (window.innerWidth <= 768) {
-            document.body.classList.remove('sidebar-visible');
-        }
+        if (window.innerWidth <= 768) document.body.classList.remove('sidebar-visible');
     };
 
-    const tampilkanPesan = (text, sender) => {
-        if (welcomeView.parentElement === chatBox) {
-            chatBox.removeChild(welcomeView);
-        }
+    const tampilkanPesan = (text, sender, timestamp) => {
+        if (welcomeView.parentElement === chatBox) chatBox.removeChild(welcomeView);
 
         const messageElement = document.createElement('div');
         messageElement.classList.add('message', sender === 'user' ? 'user-msg' : 'bot-msg');
         
-        const avatarChar = sender === 'user' ? 'U' : 'G';
-        const avatarHtml = `<div class="message-avatar">${avatarChar}</div>`;
-        const contentHtml = `<div class="message-content">${marked.parse(text)}</div>`;
+        const avatarHtml = `<div class="message-avatar">${sender === 'user' ? 'U' : 'G'}</div>`;
         
-        messageElement.innerHTML = avatarHtml + contentHtml;
+        const formattedTime = timestamp ? new Date(timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '';
+        const timestampHtml = `<div class="message-timestamp">${formattedTime}</div>`;
+        
+        // Untuk pesan user, bungkus dalam div agar stylingnya konsisten
+        const contentHtml = sender === 'user'
+            ? `<div class="message-content-wrapper"><div class="message-content">${marked.parse(text)}</div>${timestampHtml}</div>`
+            : `<div class="message-content">${marked.parse(text)}${timestampHtml}</div>`;
+            
+        messageElement.innerHTML = (sender === 'bot' ? avatarHtml : '') + contentHtml + (sender === 'user' ? avatarHtml : '');
+
         chatBox.appendChild(messageElement);
 
         messageElement.querySelectorAll('pre code').forEach((block) => {
@@ -71,12 +76,12 @@ document.addEventListener('DOMContentLoaded', () => {
             copyBtn.className = 'copy-btn';
             copyBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> <span>Copy</span>`;
             
-            copyBtn.addEventListener('click', () => {
+            copyBtn.onclick = () => {
                 navigator.clipboard.writeText(block.textContent).then(() => {
                     copyBtn.querySelector('span').textContent = 'Disalin!';
                     setTimeout(() => { copyBtn.querySelector('span').textContent = 'Copy'; }, 2000);
                 });
-            });
+            };
             
             codeHeader.appendChild(langSpan);
             codeHeader.appendChild(copyBtn);
@@ -90,17 +95,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const messageText = userInput.value.trim();
         if (messageText === "") return;
 
-        // Jika ini pesan pertama dalam sesi baru, buat ID chat baru
-        if (!currentChatId) {
-            currentChatId = Date.now().toString();
-        }
+        if (!currentChatId) currentChatId = Date.now().toString();
 
-        tampilkanPesan(messageText, 'user');
-        saveMessageToHistory(messageText, 'user');
+        const timestamp = new Date().toISOString();
+        tampilkanPesan(messageText, 'user', timestamp);
+        saveMessageToHistory(messageText, 'user', timestamp);
         userInput.value = "";
         userInput.style.height = 'auto';
-
-        // Indikator mengetik yang baru
+        
         const loadingIndicator = document.createElement('div');
         loadingIndicator.className = 'message bot-msg';
         loadingIndicator.innerHTML = `<div class="message-avatar">G</div><div class="message-content"><div class="typing-indicator"><span></span><span></span><span></span></div></div>`;
@@ -109,12 +111,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const botResponse = await geminiChatAi(messageText);
+            const botTimestamp = new Date().toISOString();
             chatBox.removeChild(loadingIndicator);
-            tampilkanPesan(botResponse, 'bot');
-            saveMessageToHistory(botResponse, 'bot');
+            tampilkanPesan(botResponse, 'bot', botTimestamp);
+            saveMessageToHistory(botResponse, 'bot', botTimestamp);
         } catch (error) {
             chatBox.removeChild(loadingIndicator);
-            tampilkanPesan("Maaf, terjadi kesalahan. Silakan coba lagi.", 'bot');
+            tampilkanPesan("Maaf, terjadi kesalahan. Silakan coba lagi.", 'bot', new Date().toISOString());
         }
     };
 
@@ -131,10 +134,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = await response.json();
         return data.candidates?.[0]?.content?.parts?.[0]?.text || "Maaf, saya tidak dapat menghasilkan respon saat ini.";
     };
-
+    
     // --- FUNGSI LOCAL STORAGE & RIWAYAT ---
 
-    const saveMessageToHistory = (text, sender) => {
+    const saveMessageToHistory = (text, sender, timestamp) => {
         let chat = chatHistory.find(c => c.id === currentChatId);
         const isNewChat = !chat;
         
@@ -143,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
             chatHistory.unshift(chat);
         }
         
-        chat.messages.push({ text, sender });
+        chat.messages.push({ text, sender, timestamp });
         saveChatHistoryToLocalStorage();
         if (isNewChat) renderChatHistory();
     };
@@ -165,13 +168,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'delete-chat-btn';
             deleteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
-            deleteBtn.onclick = (e) => {
-                e.stopPropagation();
-                deleteChat(chat.id);
-            };
+            deleteBtn.onclick = (e) => { e.stopPropagation(); deleteChat(chat.id); };
             
             li.appendChild(deleteBtn);
-            li.addEventListener('click', () => loadChat(chat.id));
+li.addEventListener('click', () => loadChat(chat.id));
             chatHistoryList.appendChild(li);
         });
     };
@@ -185,28 +185,38 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // --- EVENT LISTENERS ---
+    // --- FUNGSI & EVENT LISTENER FITUR BARU ---
+    
+    // Hapus Semua Riwayat
+    clearHistoryBtn.addEventListener('click', () => {
+        if (confirm('PERINGATAN: Anda akan menghapus SEMUA riwayat obrolan. Aksi ini tidak dapat dibatalkan. Lanjutkan?')) {
+            chatHistory = [];
+            localStorage.removeItem('geminiChatHistory');
+            startNewChat();
+        }
+    });
+
+    // Theme Switch
+    const applyTheme = (theme) => {
+        document.body.classList.toggle('light-mode', theme === 'light');
+        highlightThemeLight.disabled = theme !== 'light';
+        localStorage.setItem('geminiChatTheme', theme);
+        themeSwitcher.checked = theme === 'light';
+    };
+    themeSwitcher.addEventListener('change', () => applyTheme(themeSwitcher.checked ? 'light' : 'dark'));
+
+    // --- EVENT LISTENERS UMUM ---
 
     sendButton.addEventListener('click', kirimPesan);
     newChatButton.addEventListener('click', startNewChat);
-
     userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); kirimPesan(); } });
     userInput.addEventListener('input', () => { userInput.style.height = 'auto'; userInput.style.height = (userInput.scrollHeight) + 'px'; });
-
-    // Event listener untuk tombol prompt card
-    document.querySelectorAll('.prompt-card').forEach(card => {
-        card.addEventListener('click', () => {
-            userInput.value = card.dataset.prompt;
-            kirimPesan();
-        });
-    });
-    
-    // Event listener untuk toggle menu mobile
     menuToggleButton.addEventListener('click', () => document.body.classList.toggle('sidebar-visible'));
     sidebarOverlay.addEventListener('click', () => document.body.classList.remove('sidebar-visible'));
 
-    // --- INISIALISASI ---
+    // --- INISIALISASI APLIKASI ---
     loadChatHistoryFromLocalStorage();
     renderChatHistory();
+    applyTheme(localStorage.getItem('geminiChatTheme') || 'dark'); // Muat tema tersimpan
     startNewChat();
 });
