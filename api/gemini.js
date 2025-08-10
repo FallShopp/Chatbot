@@ -1,4 +1,4 @@
-// File: /api/gemini.js
+// File: /api/gemini.js (Versi Final yang Sudah Diperbaiki)
 
 export const config = {
   runtime: 'edge',
@@ -29,20 +29,26 @@ export default async function handler(req) {
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
     
     const systemInstruction = {
-        role: "system",
         parts: [{
             text: "Anda adalah 'Fall Moderators AI', asisten AI yang canggih, ramah, dan profesional. Anda diciptakan untuk membantu pengguna dengan berbagai tugas. Selalu berikan jawaban yang terstruktur, informatif, dan mudah dimengerti. Jika Anda tidak tahu jawabannya, katakan terus terang."
         }]
     };
     
     const requestBody = {
-        contents: [systemInstruction, ...history], 
+        // PERUBAHAN KRUSIAL ADA DI SINI:
+        // 'systemInstruction' sekarang menjadi properti tersendiri di luar 'contents'
+        systemInstruction: systemInstruction,
+        
+        // 'contents' sekarang hanya berisi riwayat obrolan dari pengguna dan model
+        contents: history, 
+        
         safetySettings: [
             { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
             { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
             { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
             { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
         ],
+        
         generationConfig: {
             temperature: 0.7,
             maxOutputTokens: 2048,
@@ -57,6 +63,7 @@ export default async function handler(req) {
 
     if (!googleResponse.ok) {
         const errorData = await googleResponse.json();
+        console.error("Error from Google API:", errorData);
         if (errorData.promptFeedback?.blockReason) {
             throw new Error(`Permintaan diblokir karena alasan keamanan: ${errorData.promptFeedback.blockReason}`);
         }
@@ -76,4 +83,4 @@ export default async function handler(req) {
       status: 500, headers: { 'Content-Type': 'application/json' },
     });
   }
- }
+      }
