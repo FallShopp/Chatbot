@@ -121,10 +121,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- PANGGILAN API (VERSI DEVELOPMENT - TIDAK AMAN UNTUK PUBLIKASI) ---
     const geminiChatAi = async (prompt) => {
         // ==> TEMPATKAN API KEY ANDA DI SINI <==
-        const apiKey = "MASUKKAN_API_KEY_GEMINI_ANDA_DI_SINI";
+        const apiKey = "AIzaSyBVpP65Bwyt5iR6fJ-YO3SUTHNn8qD9-8Q";
 
         // Cek jika API Key belum dimasukkan
-        if (apiKey === "MASUKKAN_API_KEY_GEMINI_ANDA_DI_SINI") {
+        if (apiKey === "AIzaSyBVpP65Bwyt5iR6fJ-YO3SUTHNn8qD9-8Q") {
             return "## Kesalahan Konfigurasi\n\nAPI Key belum dimasukkan. Silakan buka file `chatbot.js` dan isi variabel `apiKey` dengan kunci API Gemini Anda.";
         }
         
