@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gemini Assistant</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="gaya.css" />
+  </head>
+  <body>
+    
+    <div id="chat-container">
+      <header class="chat-header">
+        <div class="bot-info">
+          <div class="bot-avatar">G</div>
+          <div class="bot-details">
+            <p class="bot-name">Gemini Assistant</p>
+            <p class="bot-status">Online</p>
+          </div>
+        </div>
+      </header>
+
+      <main id="chat-box">
+        <div class="message bot-msg">
+          <p>Halo! Saya Gemini, asisten AI Anda. Apa yang ingin Anda ketahui hari ini?</p>
+        </div>
+      </main>
+
+      <div class="typing-indicator" id="typing-indicator">
+        <span></span><span></span><span></span>
+      </div>
+
+      <footer id="input-area">
+        <input id="pesan" type="text" placeholder="Ketik pesan Anda di sini..." autocomplete="off" />
+        <button id="kirim-btn" onclick="kirimPesan()" aria-label="Kirim Pesan">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </footer>
+    </div>
+
+    <script src="chatbot.js"></script>
+  </body>
+  </html>
