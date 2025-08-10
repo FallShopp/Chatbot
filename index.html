@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <link rel="stylesheet" id="highlight-theme-light" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css" disabled>
     
     <link rel="stylesheet" href="gaya.css">
 
@@ -30,31 +31,34 @@
                 <p>Riwayat</p>
                 <ul id="chat-history-list"></ul>
             </nav>
+            <div class="sidebar-footer">
+                <div class="setting-item" id="clear-history-container">
+                    <button id="clear-history-btn" class="sidebar-button footer-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                        <span>Hapus Riwayat</span>
+                    </button>
+                </div>
+                <div class="setting-item">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                    <span>Mode Tampilan</span>
+                    <label class="theme-switch">
+                        <input type="checkbox" id="theme-switcher">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
         </aside>
 
         <main id="chat-container">
             <button id="menu-toggle-btn" aria-label="Toggle Menu">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
             </button>
             
             <div id="chat-box">
                 <div class="welcome-view">
-                    <div class="logo">G</div>
-                    <h1>Selamat Datang di Gemini Assistant</h1>
-                    <div class="example-prompts">
-                        <div class="prompt-card" data-prompt="Jelaskan konsep machine learning dalam 3 paragraf.">
-                            <h3>Jelaskan Konsep</h3>
-                            <p>misalnya, machine learning atau komputasi kuantum</p>
-                        </div>
-                        <div class="prompt-card" data-prompt="Buatkan saya resep sederhana untuk makan malam.">
-                            <h3>Berikan Ide Kreatif</h3>
-                            <p>misalnya, resep masakan atau ide kado ulang tahun</p>
-                        </div>
-                        <div class="prompt-card" data-prompt="Buatkan contoh kode Python untuk membaca file CSV.">
-                            <h3>Bantu Saya Koding</h3>
-                            <p>misalnya, membuat fungsi atau memperbaiki bug</p>
-                        </div>
-                    </div>
+                    <img src="fall_moderators_logo.png" alt="AI Assistant Logo" class="logo">
+                    <h1>Selamat Datang!</h1>
+                    <p class="welcome-subtitle">Saya adalah asisten AI yang didukung oleh Gemini. Tanyakan apa saja.</p>
                 </div>
             </div>
 
@@ -69,9 +73,8 @@
             </footer>
         </main>
     </div>
-
+    
     <div id="sidebar-overlay"></div>
-
     <script src="chatbot.js"></script>
 </body>
 </html>
