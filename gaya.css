@@ -101,6 +101,28 @@ input:checked + .slider:before { transform: translateX(22px); background-color: 
     .tools-panel { border-top: 1px solid var(--border-color); }
 }
 
-/* KODE BLOK DAN LAINNYA */
+/* KODE BLOK */
 .message-content pre { background-color: var(--bg-primary); border-radius: 8px; margin: 1em 0; position: relative; border: 1px solid var(--border-color); }
 .message-content code.hljs { padding: 16px; border-radius: 8px; }
+
+/* PENAMBAHAN UNTUK TAMPILAN GAMBAR */
+.generated-image-container {
+    padding: 8px;
+    background-color: var(--bg-primary);
+    border-radius: 12px;
+    margin-top: 8px;
+}
+.generated-image-container img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    display: block;
+}
+.bot-msg .message-content {
+    background-color: transparent;
+    padding: 0;
+}
+.bot-msg .message-content:not(:has(.generated-image-container)) {
+    background-color: var(--bg-tertiary);
+    padding: 16px;
+    }
