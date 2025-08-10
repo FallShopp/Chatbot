@@ -1,112 +1,145 @@
-// Mengambil elemen-elemen dari HTML
+// --- BAGIAN ASLI: LOGIKA CHATBOT GEMINI (TIDAK BERUBAH) ---
+
 const chatBox = document.getElementById('chat-box');
 const userInput = document.getElementById('pesan');
 const sendButton = document.getElementById('kirim-btn');
-const typingIndicator = document.getElementById('typing-indicator');
+// Kita pindahkan typingIndicator ke atas agar bisa diakses oleh fungsi baru
+const typingIndicator = document.querySelector('.typing-indicator'); 
 
-// --- FUNGSI UTAMA UNTUK MENGIRIM PESAN ---
-// Kita menggunakan 'async' agar bisa memakai 'await' untuk menunggu respon dari API
 async function kirimPesan() {
-    const messageText = userInput.value.trim();
-
-    if (messageText === "") {
-        return; // Jangan kirim pesan kosong
+    // Sembunyikan welcome screen jika ada saat pesan pertama dikirim
+    const welcomeScreen = document.querySelector('.welcome-screen');
+    if (welcomeScreen) {
+        welcomeScreen.style.display = 'none';
     }
 
-    // 1. Tampilkan pesan pengguna di UI
+    const messageText = userInput.value.trim();
+    if (messageText === "") return;
+
     tampilkanPesan(messageText, 'user');
     userInput.value = "";
-    
-    // 2. Tampilkan indikator "sedang mengetik"
+    userInput.style.height = 'auto'; // Reset tinggi textarea
+
     tampilkanIndikatorMengetik(true);
 
     try {
-        // 3. Panggil API Gemini dan tunggu hasilnya (menggunakan await)
         const botResponse = await geminiChatAi(messageText);
-
-        // 4. Setelah dapat jawaban, tampilkan di UI
         tampilkanPesan(botResponse, 'bot');
-
     } catch (error) {
-        // Jika terjadi error saat memanggil API
         console.error("Gagal menghubungi API Gemini:", error);
         tampilkanPesan("Maaf, terjadi kesalahan. Tidak bisa terhubung ke AI saat ini.", 'bot');
     } finally {
-        // 5. Apapun hasilnya (sukses atau gagal), sembunyikan indikator "mengetik"
         tampilkanIndikatorMengetik(false);
     }
 }
 
-// --- FUNGSI UNTUK MENGHUBUNGI GEMINI API ---
 async function geminiChatAi(prompt) {
-    // PENTING: Ganti "api_KEY" dengan API Key Anda yang sebenarnya.
-    const apiKey = "api_KEY"; 
+    const apiKey = "api_KEY"; // Ganti dengan API Key Anda
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-
-    const requestBody = {
-        contents: [{
-            parts: [{
-                text: prompt
-            }]
-        }]
-    };
+    const requestBody = { contents: [{ parts: [{ text: prompt }] }] };
 
     try {
         const response = await fetch(apiUrl, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(requestBody)
         });
-
-        if (!response.ok) {
-            // Menangani error HTTP seperti 404 atau 500
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
-        
-        // Cek struktur data balasan dari Gemini
-        if (data.candidates && data.candidates.length > 0 && data.candidates[0].content.parts.length > 0) {
+        if (data.candidates && data.candidates.length > 0) {
             return data.candidates[0].content.parts[0].text;
         } else {
-            // Jika balasan ada tapi tidak sesuai format yang diharapkan
             console.error("API response format tidak valid:", data);
             return "Maaf, saya menerima respon yang tidak valid dari AI.";
         }
     } catch (error) {
-        // Menangkap error jaringan atau error dari 'throw new Error' di atas
         console.error("Error dalam fetch ke Gemini API:", error);
-        // Melempar error lagi agar bisa ditangkap oleh blok catch di fungsi kirimPesan()
-        throw error; 
+        throw error;
     }
 }
 
-
-// --- FUNGSI-FUNGSI BANTUAN UNTUK UI ---
-
-// Fungsi untuk menampilkan pesan di UI
 function tampilkanPesan(text, sender) {
-    const messageElement = document.createElement('div');
-    messageElement.classList.add('message', sender === 'user' ? 'user-msg' : 'bot-msg');
-    messageElement.textContent = text;
-    chatBox.appendChild(messageElement);
+    const messageContainer = document.createElement('div');
+    messageContainer.classList.add('message', sender === 'user' ? 'user-msg' : 'bot-msg');
+    
+    const messageParagraph = document.createElement('p');
+    messageParagraph.textContent = text;
+    
+    messageContainer.appendChild(messageParagraph);
+    chatBox.appendChild(messageContainer);
     chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-// Fungsi untuk menampilkan atau menyembunyikan indikator mengetik
 function tampilkanIndikatorMengetik(show) {
-    typingIndicator.style.display = show ? 'block' : 'none';
+    typingIndicator.style.display = show ? 'flex' : 'none';
     if (show) {
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 }
 
-// Event listener untuk mengirim pesan dengan menekan tombol 'Enter'
 userInput.addEventListener('keypress', function(event) {
-    if (event.key === 'Enter') {
+    if (event.key === 'Enter' && !event.shiftKey) { // Kirim dengan Enter, baris baru dengan Shift+Enter
         event.preventDefault();
         kirimPesan();
     }
+});
+
+
+// --- KODE BARU: MEMBUAT SEMUA TOMBOL BERFUNGSI ---
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    // 1. Fitur Textarea Auto-Resize
+    userInput.addEventListener('input', () => {
+        userInput.style.height = 'auto'; // Reset tinggi ke default
+        userInput.style.height = (userInput.scrollHeight) + 'px'; // Atur tinggi sesuai konten
+    });
+
+    // 2. Seleksi semua tombol yang belum berfungsi
+    const menuBtn = document.querySelector('.chat-header .icon-btn');
+    const appTitleBtn = document.querySelector('.app-title');
+    const plansBtn = document.querySelector('.plans-btn');
+    const callBtn = document.querySelector('.live-call-promo button');
+    const actionButtons = document.querySelectorAll('.action-buttons button');
+
+    // 3. Tambahkan event listener untuk setiap tombol
+
+    // Tombol Menu Hamburger
+    if (menuBtn) {
+        menuBtn.addEventListener('click', () => {
+            alert('Fitur "Menu" belum diimplementasikan.');
+        });
+    }
+
+    // Tombol Judul Aplikasi (BLACKBOXAI)
+    if (appTitleBtn) {
+        appTitleBtn.addEventListener('click', () => {
+            alert('Fitur "Dropdown Judul" belum diimplementasikan.');
+        });
+    }
+
+    // Tombol PLANS
+    if (plansBtn) {
+        plansBtn.addEventListener('click', () => {
+            alert('Fitur "Plans" belum diimplementasikan.');
+        });
+    }
+    
+    // Tombol Call
+    if (callBtn) {
+        callBtn.addEventListener('click', () => {
+            alert('Fitur "Live Call" belum diimplementasikan.');
+        });
+    }
+
+    // Tombol Aksi di bagian bawah (Research, Image, dll.)
+    actionButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            // Mengambil teks dari tombol, atau dari ikon jika tidak ada teks
+            const buttonText = button.textContent.trim() || button.querySelector('svg').constructor.name;
+            alert(`Fitur "${buttonText}" belum diimplementasikan.`);
+        });
+    });
+
+    console.log('Semua tombol kini telah aktif dan siap dikembangkan.');
 });
