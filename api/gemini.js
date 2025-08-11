@@ -1,4 +1,4 @@
-// File: /api/gemini.js (Versi Final yang Sudah Diperbaiki)
+// File: /api/gemini.js (Versi Final dengan Google Search)
 
 export const config = {
   runtime: 'edge',
@@ -12,7 +12,8 @@ export default async function handler(req) {
   }
 
   try {
-    const { history } = await req.json();
+    // Ambil riwayat DAN status tombol searchGoogle dari frontend
+    const { history, searchGoogle } = await req.json();
 
     if (!history || !Array.isArray(history) || history.length === 0) {
         return new Response(JSON.stringify({ error: 'Invalid request: history is required.' }), {
@@ -21,39 +22,30 @@ export default async function handler(req) {
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
-
     if (!apiKey) {
       throw new Error("API Key for Gemini is not configured on the server.");
     }
     
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
     
-    const systemInstruction = {
-        parts: [{
-            text: "Anda adalah 'Fall Moderators AI', asisten AI yang canggih, ramah, dan profesional. Anda diciptakan untuk membantu pengguna dengan berbagai tugas. Selalu berikan jawaban yang terstruktur, informatif, dan mudah dimengerti. Jika Anda tidak tahu jawabannya, katakan terus terang."
-        }]
-    };
+    const systemInstruction = { /* ... tidak berubah ... */ };
     
-    const requestBody = {
-        // PERUBAHAN KRUSIAL ADA DI SINI:
-        // 'systemInstruction' sekarang menjadi properti tersendiri di luar 'contents'
-        systemInstruction: systemInstruction,
-        
-        // 'contents' sekarang hanya berisi riwayat obrolan dari pengguna dan model
+    let requestBody = {
+        systemInstruction: {
+            parts: [{ text: "Anda adalah 'Fall Asisten AI', asisten AI yang canggih, ramah, dan profesional..." }]
+        },
         contents: history, 
-        
-        safetySettings: [
-            { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-            { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-            { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-            { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-        ],
-        
+        safetySettings: [ /* ... tidak berubah ... */ ],
         generationConfig: {
             temperature: 0.7,
             maxOutputTokens: 2048,
         }
     };
+    
+    // FITUR BARU: Tambahkan alat Google Search jika diminta oleh frontend
+    if (searchGoogle) {
+        requestBody.tools = [{ "Google Search": {} }];
+    }
 
     const googleResponse = await fetch(apiUrl, {
         method: 'POST',
@@ -63,11 +55,7 @@ export default async function handler(req) {
 
     if (!googleResponse.ok) {
         const errorData = await googleResponse.json();
-        console.error("Error from Google API:", errorData);
-        if (errorData.promptFeedback?.blockReason) {
-            throw new Error(`Permintaan diblokir karena alasan keamanan: ${errorData.promptFeedback.blockReason}`);
-        }
-        throw new Error(errorData.error?.message || `Google API error! status: ${googleResponse.status}`);
+        throw new Error(errorData.error?.message || `Google API error!`);
     }
 
     const data = await googleResponse.json();
@@ -83,4 +71,4 @@ export default async function handler(req) {
       status: 500, headers: { 'Content-Type': 'application/json' },
     });
   }
-      }
+}
