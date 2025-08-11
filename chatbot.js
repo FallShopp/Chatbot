@@ -7,76 +7,44 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('resize', setAppHeight);
     setAppHeight();
 
-    // --- SELEKSI ELEMEN DOM ---
+    // --- SELEKSİ ELEMEN DOM ---
     const chatBox = document.getElementById('chat-box');
     const userInput = document.getElementById('pesan-input');
     const sendButton = document.getElementById('kirim-btn');
+    const micBtn = document.getElementById('mic-btn');
     const welcomeView = document.querySelector('.welcome-view');
-    
-    // Tombol Fungsional
-    const menuToggleButton = document.getElementById('menu-toggle-btn');
-    const sidebar = document.getElementById('sidebar');
-    const sidebarOverlay = document.getElementById('sidebar-overlay');
-    const newChatButton = document.getElementById('new-chat-btn');
-    const attachFileBtn = document.getElementById('attach-file-btn');
-    const fileInput = document.getElementById('file-input');
+    // ... (Elemen lain dari sidebar/fitur sebelumnya bisa ditambahkan di sini jika ingin diaktifkan)
 
     // --- STATE & FUNGSI UTAMA ---
     let conversationHistory = [];
-    let attachedFile = null;
 
-    const updateSendButtonState = () => {
-        sendButton.disabled = userInput.value.trim() === '' && !attachedFile;
-    };
-
-    const tampilkanPesan = (parts, sender) => {
+    // Tampilkan pesan dengan gaya baru (tanpa nama pengirim)
+    const tampilkanPesan = (content, sender) => {
         if (welcomeView) { welcomeView.style.display = 'none'; }
         const messageElement = document.createElement('div');
         messageElement.classList.add('message', sender === 'user' ? 'user-msg' : 'bot-msg');
 
-        const avatarUrl = sender === 'user' ? null : 'https://files.catbox.moe/f2er59.jpg';
-        const senderName = sender === 'user' ? 'You' : 'Fall Asisten AI';
+        const botAvatar = `<div class="message-avatar">
+                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm.29 5.71a1.29 1.29 0 1 1-1.29 1.29 1.29 1.29 0 0 1 1.29-1.29Zm3 9.58a1.29 1.29 0 1 1-1.29 1.29 1.29 1.29 0 0 1 1.29-1.29Zm-6-5a1.5 1.5 0 1 1-1.5 1.5A1.5 1.5 0 0 1 9.29 12.29Z"/></svg>
+                           </div>`;
+        const userAvatar = `<div class="message-avatar">U</div>`;
         
-        let contentInnerHtml = '';
-        parts.forEach(part => {
-            if (part.text) {
-                contentInnerHtml += marked.parse(part.text);
-            } else if (part.inlineData) {
-                contentInnerHtml += `<div class="sent-file"><img src="data:${part.inlineData.mimeType};base64,${part.inlineData.data}" alt="File terlampir"></div>`;
-            }
-        });
-
-        const messageBubbleHtml = `<div class="message-bubble"><div class="message-content">${contentInnerHtml}</div></div>`;
-        let finalMessageHtml = `<div class="message-content-wrapper">
-                                    <div class="sender-name">${senderName}</div>
-                                    ${messageBubbleHtml}
-                                </div>`;
+        const contentHtml = `<div class="message-content">${marked.parse(content)}</div>`;
         
-        if (avatarUrl) {
-            messageElement.innerHTML = `<img src="${avatarUrl}" class="message-avatar">` + finalMessageHtml;
-        } else {
-            messageElement.innerHTML = finalMessageHtml;
-        }
-
+        messageElement.innerHTML = (sender === 'bot' ? botAvatar : userAvatar) + contentHtml;
         chatBox.appendChild(messageElement);
         chatBox.scrollTop = chatBox.scrollHeight;
     };
 
+    // Fungsi Kirim Pesan dengan Indikator "Berpikir"
     const kirimPesan = async () => {
-        const messageText = userInput.value.trim();
-        if (messageText === "" && !attachedFile) return;
-
-        updateSendButtonState();
+        const promptText = userInput.value.trim();
+        if (promptText === "") return;
         
-        const userParts = [];
-        if (attachedFile) userParts.push(attachedFile.geminiPart);
-        if (messageText) userParts.push({ text: messageText });
-
-        tampilkanPesan(userParts, 'user');
-        conversationHistory.push({ role: 'user', parts: userParts });
-
+        tampilkanPesan(promptText, 'user');
+        conversationHistory.push({ role: 'user', parts: [{ text: promptText }] });
         userInput.value = "";
-        removeAttachedFile();
+        updateInputButtons();
         
         const thinkingIndicator = document.createElement('div');
         thinkingIndicator.className = 'thinking-indicator';
@@ -84,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="thinking-logo">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm.29 5.71a1.29 1.29 0 1 1-1.29 1.29 1.29 1.29 0 0 1 1.29-1.29Zm3 9.58a1.29 1.29 0 1 1-1.29 1.29 1.29 1.29 0 0 1 1.29-1.29Zm-6-5a1.5 1.5 0 1 1-1.5 1.5A1.5 1.5 0 0 1 9.29 12.29Z"/></svg>
             </div>
+            <span class="thinking-text">Harap tunggu...</span>
         `;
         chatBox.appendChild(thinkingIndicator);
         chatBox.scrollTop = chatBox.scrollHeight;
@@ -91,14 +60,15 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const botResponse = await geminiChatAi(conversationHistory);
             chatBox.removeChild(thinkingIndicator);
-            tampilkanPesan([{ text: botResponse }], 'bot');
+            tampilkanPesan(botResponse, 'bot');
             conversationHistory.push({ role: 'model', parts: [{ text: botResponse }] });
         } catch (error) {
             chatBox.removeChild(thinkingIndicator);
-            tampilkanPesan([{ text: `Maaf, terjadi kesalahan: ${error.message}` }], 'bot');
+            tampilkanPesan(`Maaf, terjadi kesalahan: ${error.message}`, 'bot');
         }
     };
 
+    // Panggilan API (tidak berubah)
     const geminiChatAi = async (history) => {
         const proxyUrl = '/api/gemini';
         const response = await fetch(proxyUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ history }) });
@@ -106,30 +76,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = await response.json();
         return data.text;
     };
-
-    // --- LOGIKA UPLOAD FILE ---
-    attachFileBtn.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
-        if (file.size > 4 * 1024 * 1024) { alert('Ukuran file terlalu besar! Maksimal 4MB.'); fileInput.value = ''; return; }
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            const base64Data = reader.result.split(',')[1];
-            attachedFile = { geminiPart: { inlineData: { mimeType: file.type, data: base64Data } } };
-            updateSendButtonState();
-        };
-        reader.readAsDataURL(file);
-    });
-    function removeAttachedFile() { attachedFile = null; fileInput.value = ''; updateSendButtonState(); }
+    
+    // --- LOGIKA UI BARU UNTUK INPUT ---
+    const updateInputButtons = () => {
+        if (userInput.value.trim() !== '') {
+            micBtn.classList.add('hidden');
+            sendButton.classList.remove('hidden');
+        } else {
+            micBtn.classList.remove('hidden');
+            sendButton.classList.add('hidden');
+        }
+    };
 
     // --- EVENT LISTENERS ---
-    menuToggleButton.addEventListener('click', () => document.body.classList.toggle('sidebar-visible'));
-    sidebarOverlay.addEventListener('click', () => document.body.classList.remove('sidebar-visible'));
-    userInput.addEventListener('input', updateSendButtonState);
     sendButton.addEventListener('click', kirimPesan);
     userInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); kirimPesan(); }
     });
-    newChatButton.addEventListener('click', () => location.reload()); // Cara mudah untuk chat baru
+    userInput.addEventListener('input', updateInputButtons);
+
+    // Placeholder untuk tombol lain yang ingin diaktifkan
+    // document.getElementById('attach-file-btn').addEventListener('click', () => { /* ... logika upload ... */ });
+    // document.getElementById('menu-toggle-btn').addEventListener('click', () => { /* ... logika sidebar ... */ });
+    
+    // --- INISIALISASI ---
+    updateInputButtons(); // Set kondisi awal tombol
 });
