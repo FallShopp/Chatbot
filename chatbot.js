@@ -1,143 +1,115 @@
+// File: chatbot.js (Versi Sederhana & Stabil)
+
 document.addEventListener('DOMContentLoaded', () => {
-    // --- SELEKSI ELEMEN DOM ---
+    
+    // --- 1. SELEKSI ELEMEN DASAR ---
     const chatBox = document.getElementById('chat-box');
-    const userInput = document.getElementById('pesan');
+    const userInput = document.getElementById('pesan-input');
     const sendButton = document.getElementById('kirim-btn');
     const welcomeView = document.querySelector('.welcome-view');
-    const suggestionChipsContainer = document.getElementById('suggestion-chips-container');
-    
-    // Tombol Fungsional
-    const menuToggleButton = document.getElementById('menu-toggle-btn');
-    const infoBtn = document.getElementById('info-btn');
-    const attachFileBtn = document.getElementById('attach-file-btn');
-    const fileInput = document.getElementById('file-input');
-    const filePreviewContainer = document.getElementById('file-preview-container');
 
-    // Elemen Sidebar
-    const sidebar = document.getElementById('sidebar');
-    const sidebarOverlay = document.getElementById('sidebar-overlay');
-    const newChatButton = document.getElementById('new-chat-btn');
-    const chatHistoryList = document.getElementById('chat-history-list');
-    const archivedChatsList = document.getElementById('archived-chats-list');
-    const clearHistoryBtn = document.getElementById('clear-history-btn');
-    const themeSwitcher = document.getElementById('theme-switcher');
+    // Pastikan semua elemen ditemukan
+    if (!chatBox || !userInput || !sendButton || !welcomeView) {
+        console.error("Elemen penting tidak ditemukan! Periksa ID di HTML Anda.");
+        return;
+    }
 
-    // --- STATE APLIKASI ---
-    let allChats = [];
-    let currentChatId = null;
+    // --- 2. STATE APLIKASI ---
     let conversationHistory = [];
-    let attachedFile = null;
-    let isFirstMessage = true;
 
-    // --- FUNGSI UTAMA ---
+    // --- 3. FUNGSI UTAMA ---
 
-    const startNewChat = () => {
-        currentChatId = null; conversationHistory = [];
-        chatBox.innerHTML = '';
-        chatBox.appendChild(welcomeView);
-        welcomeView.style.display = 'flex';
-        
-        const dateSeparator = document.createElement('div');
-        dateSeparator.className = 'message-date-separator';
-        dateSeparator.textContent = 'Hari ini';
-        chatBox.appendChild(dateSeparator);
-
-        tampilkanPesan({ parts: [{text: "Nama saya Fall Moderators AI. Anggap saya sebagai asisten yang siap membantu Anda. Apa yang bisa saya bantu hari ini?"}] }, 'bot');
-        renderSuggestionChips();
-        isFirstMessage = true;
-        updateSendButtonState();
-    };
-
-    const kirimPesan = async () => {
-        const messageText = userInput.value.trim();
-        if (messageText === "" && !attachedFile) return;
-
-        if (isFirstMessage) {
-            welcomeView.style.display = 'none';
-            suggestionChipsContainer.style.display = 'none';
-            // Hapus pesan selamat datang & separator default
-            const messages = chatBox.querySelectorAll('.message, .message-date-separator');
-            messages.forEach(msg => msg.remove());
-            isFirstMessage = false;
+    // Fungsi untuk menampilkan pesan di layar
+    const tampilkanPesan = (text, sender) => {
+        // Sembunyikan pesan selamat datang jika ada
+        if (welcomeView.parentElement === chatBox) {
+            chatBox.removeChild(welcomeView);
         }
 
-        const timestamp = new Date().toISOString();
-        const userParts = [];
-        if (attachedFile) userParts.push(attachedFile.geminiPart);
-        if (messageText) userParts.push({ text: messageText });
-        
-        tampilkanPesan({ parts: userParts, sender: 'user', timestamp });
-        
-        // Simpan ke riwayat
-        if (!currentChatId) { currentChatId = Date.now().toString(); }
-        saveMessageToHistory(userParts, 'user', timestamp);
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('message', sender === 'user' ? 'user-msg' : 'bot-msg');
 
-        userInput.value = ""; removeAttachedFile();
+        const avatarUrl = 'https://files.catbox.moe/f2er59.jpg';
+        let contentHtml = '';
         
+        if (sender === 'bot') {
+            contentHtml = `<img src="${avatarUrl}" class="message-avatar">`;
+        }
+        
+        // Menggunakan Marked.js untuk mem-parse markdown
+        contentHtml += `<div class="message-content">${marked.parse(text)}</div>`;
+        
+        messageElement.innerHTML = contentHtml;
+        chatBox.appendChild(messageElement);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    };
+
+    // Fungsi untuk memanggil backend proxy Anda
+    const geminiChatAi = async (history) => {
+        const proxyUrl = '/api/gemini';
+        try {
+            const response = await fetch(proxyUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ history })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `Error dari server: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            return data.text;
+        } catch (error) {
+            console.error("Fetch error:", error);
+            // Kembalikan pesan error yang akan ditampilkan di chat
+            return `Terjadi kesalahan jaringan atau server: ${error.message}`;
+        }
+    };
+
+    // Fungsi yang dijalankan saat tombol kirim diklik
+    const kirimPesan = async () => {
+        const promptText = userInput.value.trim();
+        if (promptText === "") return;
+
+        // Tampilkan pesan pengguna
+        tampilkanPesan(promptText, 'user');
+        // Simpan pesan pengguna ke riwayat
+        conversationHistory.push({ role: 'user', parts: [{ text: promptText }] });
+        userInput.value = ""; // Kosongkan input
+
+        // Tampilkan indikator loading
         const loadingIndicator = document.createElement('div');
         loadingIndicator.className = 'message bot-msg';
         loadingIndicator.innerHTML = `<img src="https://files.catbox.moe/f2er59.jpg" class="message-avatar"><div class="message-content">...</div>`;
         chatBox.appendChild(loadingIndicator);
         chatBox.scrollTop = chatBox.scrollHeight;
-
-        try {
-            const historyForAPI = conversationHistory.map(msg => ({ role: msg.sender === 'user' ? 'user' : 'model', parts: msg.parts }));
-            const botResponse = await geminiChatAi(historyForAPI);
-            const botTimestamp = new Date().toISOString();
-            chatBox.removeChild(loadingIndicator);
-            tampilkanPesan({ parts: [{text: botResponse}], sender: 'bot', timestamp: botTimestamp });
-            saveMessageToHistory([{text: botResponse}], 'bot', botTimestamp);
-        } catch (error) {
-            chatBox.removeChild(loadingIndicator);
-            tampilkanPesan({ parts: [{text: `Maaf, terjadi kesalahan: ${error.message}`}], sender: 'bot' });
-        }
-    };
-
-    const tampilkanPesan = (messageData, sender) => {
-        const { parts, timestamp } = messageData;
-        const messageElement = document.createElement('div');
-        messageElement.classList.add('message', sender === 'user' ? 'user-msg' : 'bot-msg');
-        const avatarUrl = 'https://files.catbox.moe/f2er59.jpg';
-        let contentInnerHtml = '';
-
-        parts.forEach(part => {
-            if (part.text) {
-                contentInnerHtml += marked.parse(part.text);
-            } else if (part.inlineData) {
-                 if (part.inlineData.mimeType.startsWith('image/')) {
-                    contentInnerHtml += `<div class="sent-file"><img src="data:${part.inlineData.mimeType};base64,${part.inlineData.data}" alt="Attached Image"></div>`;
-                } else {
-                    contentInnerHtml += `<div class="sent-file"><span>📁 File terlampir</span></div>`;
-                }
-            }
-        });
-
-        let messageHtml = `<img src="${avatarUrl}" class="message-avatar"><div class="message-content">${contentInnerHtml}</div>`;
-        if (sender === 'user') {
-            messageHtml = `<div class="message-content">${contentInnerHtml}</div>`;
-        }
         
-        messageElement.innerHTML = messageHtml;
-        chatBox.appendChild(messageElement);
-        chatBox.scrollTop = chatBox.scrollHeight;
+        // Kirim riwayat ke AI dan tunggu jawaban
+        const botResponse = await geminiChatAi(conversationHistory);
+
+        // Hapus indikator loading
+        chatBox.removeChild(loadingIndicator);
+        
+        // Tampilkan jawaban AI
+        tampilkanPesan(botResponse, 'bot');
+        // Simpan jawaban AI ke riwayat
+        conversationHistory.push({ role: 'model', parts: [{ text: botResponse }] });
     };
 
-    const geminiChatAi = async (history) => { /* ... tidak berubah ... */ };
+    // --- 4. EVENT LISTENERS ---
 
-    // ... Sisa fungsi (sidebar, arsip, hapus, tema, dll) salin dari versi sebelumnya ...
-    const updateSendButtonState = () => { sendButton.disabled = !(userInput.value.trim() !== '' || attachedFile !== null); };
-    attachFileBtn.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', (event) => { /* ... logika upload file ... */ });
-    function displayFilePreview() { /* ... */ }
-    function removeAttachedFile() { attachedFile = null; filePreviewContainer.innerHTML = ''; fileInput.value = ''; updateSendButtonState(); }
-    const saveMessageToHistory = (parts, sender, timestamp) => { /* ... logika simpan riwayat ... */ };
-    // ... dan semua fungsi lainnya ...
+    // Klik tombol kirim
+    sendButton.addEventListener('click', kirimPesan);
 
-    // --- EVENT LISTENERS BARU ---
-    menuToggleButton.addEventListener('click', () => { document.body.classList.toggle('sidebar-visible'); });
-    sidebarOverlay.addEventListener('click', () => { document.body.classList.remove('sidebar-visible'); });
-    infoBtn.addEventListener('click', () => { alert('Asisten AI ini dibuat oleh Fall Moderators menggunakan teknologi Google Gemini.'); });
-    
-    // --- INISIALISASI ---
-    startNewChat();
+    // Tekan 'Enter' untuk mengirim
+    userInput.addEventListener('keypress', (event) => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            kirimPesan();
+        }
+    });
+
+    console.log("Asisten AI siap.");
 });
