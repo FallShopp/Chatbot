@@ -9,7 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatBox = document.getElementById('chat-box');
     const userInput = document.getElementById('pesan-input');
     const sendButton = document.getElementById('kirim-btn');
-    const micBtn = document.getElementById('mic-btn');
     const welcomeView = document.querySelector('.welcome-view');
     const menuToggleButton = document.getElementById('menu-toggle-btn');
     const sidebar = document.getElementById('sidebar');
@@ -17,24 +16,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const newChatButton = document.getElementById('new-chat-btn');
     const attachFileBtn = document.getElementById('attach-file-btn');
     const fileInput = document.getElementById('file-input');
-    const filePreviewContainer = document.getElementById('file-preview-container');
     const themeSwitcher = document.getElementById('theme-switcher');
-    const highlightThemeLight = document.getElementById('highlight-theme-light');
-    
+
     // --- STATE & FUNGSI UTAMA ---
     let conversationHistory = [];
     let attachedFile = null;
-    let recognition = null;
-    
-    const startNewChat = () => {
-        conversationHistory = [];
-        chatBox.innerHTML = '';
-        if (welcomeView) {
-            chatBox.appendChild(welcomeView);
-            welcomeView.style.display = 'flex';
-        }
-        userInput.value = '';
-        updateInputButtons();
+
+    const updateSendButtonState = () => {
+        sendButton.disabled = userInput.value.trim() === '' && !attachedFile;
     };
 
     const tampilkanPesan = (parts, sender) => {
@@ -42,16 +31,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const messageElement = document.createElement('div');
         messageElement.classList.add('message', sender === 'user' ? 'user-msg' : 'bot-msg');
 
-        const botAvatar = `<div class="message-avatar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm.29 5.71a1.29 1.29 0 1 1-1.29 1.29 1.29 1.29 0 0 1 1.29-1.29Zm3 9.58a1.29 1.29 0 1 1-1.29 1.29 1.29 1.29 0 0 1 1.29-1.29Zm-6-5a1.5 1.5 0 1 1-1.5 1.5A1.5 1.5 0 0 1 9.29 12.29Z"/></svg></div>`;
-        const userAvatar = `<div class="message-avatar">U</div>`;
+        const avatarUrl = sender === 'user' ? null : 'https://files.catbox.moe/f2er59.jpg';
+        const senderName = sender === 'user' ? 'You' : 'Fall Asisten AI';
         
         let contentInnerHtml = '';
         parts.forEach(part => {
             if (part.text) { contentInnerHtml += marked.parse(part.text); }
+            // Logika untuk menampilkan file/gambar
+            else if (part.inlineData) {
+                contentInnerHtml += `<p><em>[File terlampir: ${part.inlineData.mimeType}]</em></p>`;
+            }
         });
+
+        const finalMessageHtml = `
+            <div class="message-content-wrapper">
+                <div class="sender-name">${senderName}</div>
+                <div class="message-content">${contentInnerHtml}</div>
+            </div>`;
         
-        const contentHtml = `<div class="message-content">${contentInnerHtml}</div>`;
-        messageElement.innerHTML = (sender === 'bot' ? botAvatar : userAvatar) + contentHtml;
+        messageElement.innerHTML = (avatarUrl ? `<img src="${avatarUrl}" class="message-avatar">` : '') + finalMessageHtml;
         chatBox.appendChild(messageElement);
         chatBox.scrollTop = chatBox.scrollHeight;
     };
@@ -63,25 +61,33 @@ document.addEventListener('DOMContentLoaded', () => {
         const userParts = [];
         if (attachedFile) userParts.push(attachedFile.geminiPart);
         if (messageText) userParts.push({ text: messageText });
-        
+
         tampilkanPesan(userParts, 'user');
         conversationHistory.push({ role: 'user', parts: userParts });
+
         userInput.value = "";
-        updateInputButtons();
+        // Hapus pratinjau file setelah dikirim
+        // removeAttachedFile();
+        updateSendButtonState();
         
-        const thinkingIndicator = document.createElement('div');
-        thinkingIndicator.className = 'thinking-indicator';
-        thinkingIndicator.innerHTML = `<div class="thinking-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm.29 5.71a1.29 1.29 0 1 1-1.29 1.29 1.29 1.29 0 0 1 1.29-1.29Zm3 9.58a1.29 1.29 0 1 1-1.29 1.29 1.29 1.29 0 0 1 1.29-1.29Zm-6-5a1.5 1.5 0 1 1-1.5 1.5A1.5 1.5 0 0 1 9.29 12.29Z"/></svg></div>`;
-        chatBox.appendChild(thinkingIndicator);
+        const loadingIndicator = document.createElement('div');
+        loadingIndicator.className = 'message bot-msg';
+        loadingIndicator.innerHTML = `
+            <img src="https://files.catbox.moe/f2er59.jpg" class="message-avatar">
+            <div class="message-content-wrapper">
+                <div class="sender-name">Fall Asisten AI</div>
+                <div class="typing-indicator"><span></span><span></span><span></span></div>
+            </div>`;
+        chatBox.appendChild(loadingIndicator);
         chatBox.scrollTop = chatBox.scrollHeight;
 
         try {
             const botResponse = await geminiChatAi(conversationHistory);
-            chatBox.removeChild(thinkingIndicator);
+            chatBox.removeChild(loadingIndicator);
             tampilkanPesan([{ text: botResponse }], 'bot');
             conversationHistory.push({ role: 'model', parts: [{ text: botResponse }] });
         } catch (error) {
-            chatBox.removeChild(thinkingIndicator);
+            chatBox.removeChild(loadingIndicator);
             tampilkanPesan([{ text: `Maaf, terjadi kesalahan: ${error.message}` }], 'bot');
         }
     };
@@ -93,29 +99,31 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = await response.json();
         return data.text;
     };
-    
-    const updateInputButtons = () => {
-        if (userInput.value.trim() !== '') {
-            micBtn.classList.add('hidden');
-            sendButton.classList.remove('hidden');
-        } else {
-            micBtn.classList.remove('hidden');
-            sendButton.classList.add('hidden');
-        }
-    };
-    
-    // --- EVENT LISTENERS ---
+
+    // --- EVENT LISTENERS (SEMUA AKTIF) ---
+    menuToggleButton.addEventListener('click', () => document.body.classList.toggle('sidebar-visible'));
+    sidebarOverlay.addEventListener('click', () => document.body.classList.remove('sidebar-visible'));
+    userInput.addEventListener('input', updateSendButtonState);
     sendButton.addEventListener('click', kirimPesan);
-    userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); kirimPesan(); } });
-    userInput.addEventListener('input', updateInputButtons);
-    
-    // Placeholder untuk fitur-fitur yang ingin diaktifkan kembali
-    if(menuToggleButton) menuToggleButton.addEventListener('click', () => { document.body.classList.toggle('sidebar-visible'); alert('Sidebar belum terhubung dengan riwayat chat.'); });
-    if(sidebarOverlay) sidebarOverlay.addEventListener('click', () => document.body.classList.remove('sidebar-visible'));
-    if(attachFileBtn) attachFileBtn.addEventListener('click', () => alert('Fitur upload file belum terhubung.'));
-    if(themeSwitcher) themeSwitcher.addEventListener('change', () => alert('Fitur tema belum terhubung.'));
-    
+    userInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); kirimPesan(); }
+    });
+    newChatButton.addEventListener('click', () => {
+        location.reload();
+    });
+    attachFileBtn.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        alert(`File "${file.name}" dipilih! Logika untuk handle file ada di sini.`);
+        // Tambahkan kembali logika FileReader untuk pratinjau dan pengiriman
+        updateSendButtonState();
+    });
+    themeSwitcher.addEventListener('change', () => {
+        document.body.classList.toggle('dark-mode');
+        // Simpan preferensi tema
+    });
+
     // --- INISIALISASI ---
-    startNewChat();
-    updateInputButtons();
+    updateSendButtonState();
 });
