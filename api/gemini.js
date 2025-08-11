@@ -12,7 +12,6 @@ export default async function handler(req) {
   }
 
   try {
-    // Ambil riwayat DAN status tombol searchGoogle dari frontend
     const { history, searchGoogle } = await req.json();
 
     if (!history || !Array.isArray(history) || history.length === 0) {
@@ -28,21 +27,23 @@ export default async function handler(req) {
     
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
     
-    const systemInstruction = { /* ... tidak berubah ... */ };
-    
-    let requestBody = {
+    const requestBody = {
         systemInstruction: {
-            parts: [{ text: "Anda adalah 'Fall Asisten AI', asisten AI yang canggih, ramah, dan profesional..." }]
+            parts: [{ text: "Anda adalah 'Fall Moderators AI', asisten AI yang canggih, ramah, dan profesional..." }]
         },
         contents: history, 
-        safetySettings: [ /* ... tidak berubah ... */ ],
+        safetySettings: [
+            { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+            { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+            { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+            { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+        ],
         generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 2048,
+            temperature: 0.8, // Sedikit lebih kreatif
+            maxOutputTokens: 4096,
         }
     };
     
-    // FITUR BARU: Tambahkan alat Google Search jika diminta oleh frontend
     if (searchGoogle) {
         requestBody.tools = [{ "Google Search": {} }];
     }
