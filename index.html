@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fall Moderators AI</title>
+    <title>Fall Asisten Ai</title>
     <link rel="icon" href="https://files.catbox.moe/f2er59.jpg" type="image/x-icon">
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,7 +21,7 @@
         <aside id="sidebar">
             <div class="sidebar-header">
                 <img src="https://files.catbox.moe/f2er59.jpg" alt="Logo" class="sidebar-logo">
-                <span>Fall Moderators</span>
+                <span>Fall Asisten</span>
             </div>
             <nav class="sidebar-nav">
                 <button id="new-chat-btn"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2z"/></svg> New Chat</button>
@@ -38,7 +38,7 @@
                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
                 </button>
                 <div class="header-title">
-                    <span>Fall Moderators AI</span>
+                    <span>Fall Asisten Ai</span>
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="m7 10l5 5l5-5z"/></svg>
                 </div>
                 <button class="plans-btn">PLANS</button>
@@ -46,22 +46,23 @@
             
             <div id="chat-box">
                 <div class="welcome-view">
-                    <h1>Ask Fall Moderators AI Anything</h1>
-                    <p>+15M users & Fortune 500 Companies</p>
+                    <h1>Ask Fall Asisten Ai Anything</h1>
+                    <p>Powered by Google Gemini</p>
                 </div>
             </div>
 
             <footer id="input-area">
+                <div id="file-preview-container"></div>
                 <div class="input-wrapper">
-                    <textarea id="pesan" placeholder="Message Fall Moderators AI..." rows="1"></textarea>
+                    <textarea id="pesan" placeholder="Message Fall Asisten Ai..." rows="1"></textarea>
                     <button id="kirim-btn" aria-label="Kirim Pesan" disabled>
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
                     </button>
                 </div>
                 <div class="action-buttons">
-                    <button><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM9 15v-2h6v2zm6-4H9V9h6z"/></svg> Research</button>
-                    <button id="attach-file-btn"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M16.5 6v11.5a4 4 0 0 0 8 0V5a2.5 2.5 0 0 0-5 0v10.5a1 1 0 0 0 2 0V6z"/></svg> Image</button>
-                    </div>
+                    <button id="research-btn"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM9 15v-2h6v2zm6-4H9V9h6z"/></svg> Research</button>
+                    <button id="attach-file-btn"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg> Attach File</button>
+                </div>
             </footer>
         </main>
     </div>
@@ -70,4 +71,4 @@
     <input type="file" id="file-input" hidden accept="image/*,video/*,audio/*,.pdf,.txt,.md,.csv">
     <script src="chatbot.js"></script>
 </body>
-    </html>
+</html>
