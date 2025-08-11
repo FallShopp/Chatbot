@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fall Moderators AI</title>
-    <meta name="description" content="Asisten AI multimodal yang didukung oleh Google Gemini.">
     <link rel="icon" href="https://files.catbox.moe/f2er59.jpg" type="image/x-icon">
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -23,40 +22,7 @@
 
     <div class="app-layout">
         <aside id="sidebar">
-            <div class="sidebar-header">
-                <img src="https://files.catbox.moe/f2er59.jpg" alt="Logo" class="sidebar-logo">
-                <span>Fall Moderators</span>
-            </div>
-            <nav class="sidebar-nav">
-                <button id="new-chat-btn"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2z"/></svg> New Chat</button>
-            </nav>
-            <div class="chat-history">
-                <p>Riwayat</p>
-                <ul id="chat-history-list"></ul>
-            </div>
-            <div class="archived-chats">
-                <details>
-                    <summary>Arsip</summary>
-                    <ul id="archived-chats-list"></ul>
-                </details>
-            </div>
-            <div class="sidebar-footer">
-                <div class="setting-item" id="clear-history-container">
-                    <button id="clear-history-btn" class="sidebar-button footer-button">
-                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                        <span>Hapus Riwayat</span>
-                    </button>
-                </div>
-                <div class="setting-item">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-                    <span>Mode Tampilan</span>
-                    <label class="theme-switch">
-                        <input type="checkbox" id="theme-switcher">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-            </div>
-        </aside>
+            </aside>
 
         <main id="chat-container">
             <header class="chat-header">
@@ -73,24 +39,18 @@
 
             <footer id="input-area">
                 <div id="file-preview-container"></div>
-                <div id="suggestion-chips-container"></div>
                 <div class="input-wrapper">
-                    <div class="input-main">
-                        <button id="attach-file-btn" class="input-action-btn" aria-label="Lampirkan File">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2z"/></svg>
-                        </button>
-                        <textarea id="pesan-input" placeholder="Minta Fall Asisten AI..." rows="1"></textarea>
-                    </div>
-                    <div class="input-actions">
-                        <button id="mic-btn" class="input-action-btn" aria-label="Gunakan Suara">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3zM19 10v2a7 7 0 0 1-14 0v-2H3v2a8 8 0 0 0 7 7.93V22h2v-2.07A8 8 0 0 0 21 12v-2z"/></svg>
-                        </button>
-                        <button id="kirim-btn" aria-label="Kirim Pesan" class="hidden">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M2.01 21L23 12L2.01 3L2 10l15 2l-15 2z"/></svg>
-                        </button>
-                    </div>
+                    <button id="attach-file-btn" class="input-action-btn" aria-label="Lampirkan File">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2z"/></svg>
+                    </button>
+                    <textarea id="pesan-input" placeholder="Kirim pesan..." rows="1"></textarea>
+                    <button id="mic-btn" class="input-action-btn" aria-label="Gunakan Suara">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3zM19 10v2a7 7 0 0 1-14 0v-2H3v2a8 8 0 0 0 7 7.93V22h2v-2.07A8 8 0 0 0 21 12v-2z"/></svg>
+                    </button>
+                    <button id="kirim-btn" aria-label="Kirim Pesan" class="hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M3.4 20.4l17.4-8.4c.8-.4.8-1.6 0-2L3.4 1.6c-.6-.3-1.4.1-1.4.8l.1 6.3c0 .5.4.9.9.9h6.6c.5 0 .9.4.9.9s-.4.9-.9.9H3.1c-.5 0-.9.4-.9.9l-.1 6.3c0 .7.8 1.1 1.4.8z"/></svg>
+                    </button>
                 </div>
-                <p class="disclaimer">Fall Moderators AI dapat membuat kesalahan, jadi periksa kembali responsnya</p>
             </footer>
         </main>
     </div>
@@ -99,4 +59,4 @@
     <input type="file" id="file-input" hidden accept="image/*,video/*,audio/*,.pdf,.txt,.md,.csv">
     <script src="chatbot.js"></script>
 </body>
- </html>
+</html>
