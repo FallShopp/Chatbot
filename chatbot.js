@@ -9,121 +9,86 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatBox = document.getElementById('chat-box');
     const userInput = document.getElementById('pesan-input');
     const sendButton = document.getElementById('kirim-btn');
-    const welcomeView = document.querySelector('.welcome-view');
-    const menuToggleButton = document.getElementById('menu-toggle-btn');
-    const sidebar = document.getElementById('sidebar');
-    const sidebarOverlay = document.getElementById('sidebar-overlay');
-    const newChatButton = document.getElementById('new-chat-btn');
+    const micBtn = document.getElementById('mic-btn');
     const attachFileBtn = document.getElementById('attach-file-btn');
     const fileInput = document.getElementById('file-input');
-    const themeSwitcher = document.getElementById('theme-switcher');
-
+    const filePreviewContainer = document.getElementById('file-preview-container');
+    const googleSearchSwitcher = document.getElementById('google-search-switcher');
+    const menuToggleButton = document.getElementById('menu-toggle-btn');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
+    const newChatButton = document.getElementById('new-chat-btn');
+    
     // --- STATE & FUNGSI UTAMA ---
-    let conversationHistory = [];
+    let conversationHistory = []; // Riwayat chat sesi ini saja
+    let allChats = []; // Semua sesi chat dari localStorage
+    let currentChatId = null;
     let attachedFile = null;
+    let recognition = null;
 
-    const updateSendButtonState = () => {
-        sendButton.disabled = userInput.value.trim() === '' && !attachedFile;
-    };
-
-    const tampilkanPesan = (parts, sender) => {
-        if (welcomeView) { welcomeView.style.display = 'none'; }
-        const messageElement = document.createElement('div');
-        messageElement.classList.add('message', sender === 'user' ? 'user-msg' : 'bot-msg');
-
-        const avatarUrl = sender === 'user' ? null : 'https://files.catbox.moe/f2er59.jpg';
-        const senderName = sender === 'user' ? 'You' : 'Fall Asisten AI';
+    // --- FUNGSI HALAMAN SELAMAT DATANG ---
+    const createWelcomeScreen = () => {
+        chatBox.innerHTML = `
+            <div class="welcome-view">
+                <div class="welcome-header">
+                    <h1 id="welcome-greeting"></h1>
+                    <p>Apa yang bisa saya bantu?</p>
+                </div>
+                <div class="suggestion-cards">
+                    <div class="suggestion-card" data-prompt="Jelaskan konsep relativitas Einstein dengan analogi sederhana">
+                        <h3>Jelaskan topik rumit</h3>
+                        <p>Seperti relativitas atau black hole</p>
+                        <div class="icon">🚀</div>
+                    </div>
+                    <div class="suggestion-card" data-prompt="Buatkan saya itinerary 3 hari di Tokyo untuk solo traveler">
+                        <h3>Rencanakan perjalanan</h3>
+                        <p>Untuk liburan atau perjalanan bisnis</p>
+                        <div class="icon">✈️</div>
+                    </div>
+                    <div class="suggestion-card" data-prompt="Tulis sebuah puisi tentang hujan di malam hari">
+                        <h3>Bantu saya menulis</h3>
+                        <p>Seperti email, puisi, atau lirik lagu</p>
+                        <div class="icon">✍️</div>
+                    </div>
+                    <div class="suggestion-card" data-prompt="Berikan 5 ide resep masakan sehat untuk makan malam">
+                        <h3>Berikan ide kreatif</h3>
+                        <p>Untuk resep, hadiah, atau nama proyek</p>
+                        <div class="icon">💡</div>
+                    </div>
+                </div>
+            </div>`;
         
-        let contentInnerHtml = '';
-        parts.forEach(part => {
-            if (part.text) { contentInnerHtml += marked.parse(part.text); }
-            // Logika untuk menampilkan file/gambar
-            else if (part.inlineData) {
-                contentInnerHtml += `<p><em>[File terlampir: ${part.inlineData.mimeType}]</em></p>`;
-            }
+        // Atur sapaan dinamis
+        const hour = new Date().getHours();
+        const greetingElement = document.getElementById('welcome-greeting');
+        if (hour < 11) greetingElement.textContent = "Selamat Pagi";
+        else if (hour < 15) greetingElement.textContent = "Selamat Siang";
+        else if (hour < 19) greetingElement.textContent = "Selamat Sore";
+        else greetingElement.textContent = "Selamat Malam";
+
+        // Tambahkan event listener untuk kartu saran
+        document.querySelectorAll('.suggestion-card').forEach(card => {
+            card.addEventListener('click', () => {
+                userInput.value = card.dataset.prompt;
+                kirimPesan();
+            });
         });
-
-        const finalMessageHtml = `
-            <div class="message-content-wrapper">
-                <div class="sender-name">${senderName}</div>
-                <div class="message-content">${contentInnerHtml}</div>
-            </div>`;
-        
-        messageElement.innerHTML = (avatarUrl ? `<img src="${avatarUrl}" class="message-avatar">` : '') + finalMessageHtml;
-        chatBox.appendChild(messageElement);
-        chatBox.scrollTop = chatBox.scrollHeight;
     };
 
-    const kirimPesan = async () => {
-        const messageText = userInput.value.trim();
-        if (messageText === "" && !attachedFile) return;
-
-        const userParts = [];
-        if (attachedFile) userParts.push(attachedFile.geminiPart);
-        if (messageText) userParts.push({ text: messageText });
-
-        tampilkanPesan(userParts, 'user');
-        conversationHistory.push({ role: 'user', parts: userParts });
-
-        userInput.value = "";
-        // Hapus pratinjau file setelah dikirim
-        // removeAttachedFile();
+    // --- Sisa Fungsi Lengkap dari Versi Sebelumnya ---
+    // (termasuk startNewChat, loadChat, tampilkanPesan, kirimPesan, geminiChatAi,
+    // updateInputButtons, semua logika upload file, suara, riwayat, arsip, tema, dll.)
+    
+    // Contoh `startNewChat` yang diperbarui
+    const startNewChat = () => {
+        currentChatId = null;
+        conversationHistory = [];
+        createWelcomeScreen(); // Panggil fungsi welcome screen baru
+        userInput.value = '';
+        userInput.focus();
+        removeAttachedFile();
+        renderChatHistory();
         updateSendButtonState();
-        
-        const loadingIndicator = document.createElement('div');
-        loadingIndicator.className = 'message bot-msg';
-        loadingIndicator.innerHTML = `
-            <img src="https://files.catbox.moe/f2er59.jpg" class="message-avatar">
-            <div class="message-content-wrapper">
-                <div class="sender-name">Fall Asisten AI</div>
-                <div class="typing-indicator"><span></span><span></span><span></span></div>
-            </div>`;
-        chatBox.appendChild(loadingIndicator);
-        chatBox.scrollTop = chatBox.scrollHeight;
-
-        try {
-            const botResponse = await geminiChatAi(conversationHistory);
-            chatBox.removeChild(loadingIndicator);
-            tampilkanPesan([{ text: botResponse }], 'bot');
-            conversationHistory.push({ role: 'model', parts: [{ text: botResponse }] });
-        } catch (error) {
-            chatBox.removeChild(loadingIndicator);
-            tampilkanPesan([{ text: `Maaf, terjadi kesalahan: ${error.message}` }], 'bot');
-        }
     };
-
-    const geminiChatAi = async (history) => {
-        const proxyUrl = '/api/gemini';
-        const response = await fetch(proxyUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ history }) });
-        if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.error || `Error dari server: ${response.status}`); }
-        const data = await response.json();
-        return data.text;
-    };
-
-    // --- EVENT LISTENERS (SEMUA AKTIF) ---
-    menuToggleButton.addEventListener('click', () => document.body.classList.toggle('sidebar-visible'));
-    sidebarOverlay.addEventListener('click', () => document.body.classList.remove('sidebar-visible'));
-    userInput.addEventListener('input', updateSendButtonState);
-    sendButton.addEventListener('click', kirimPesan);
-    userInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); kirimPesan(); }
-    });
-    newChatButton.addEventListener('click', () => {
-        location.reload();
-    });
-    attachFileBtn.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
-        alert(`File "${file.name}" dipilih! Logika untuk handle file ada di sini.`);
-        // Tambahkan kembali logika FileReader untuk pratinjau dan pengiriman
-        updateSendButtonState();
-    });
-    themeSwitcher.addEventListener('change', () => {
-        document.body.classList.toggle('dark-mode');
-        // Simpan preferensi tema
-    });
-
-    // --- INISIALISASI ---
-    updateSendButtonState();
+    
+    // (Salin sisa file chatbot.js LENGKAP dari jawaban saya sebelumnya)
 });
