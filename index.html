@@ -17,60 +17,54 @@
 <body>
     <div class="app-layout">
         <aside id="sidebar">
-            <div class="sidebar-header">
+             <div class="sidebar-header">
+                <img src="https://files.catbox.moe/f2er59.jpg" alt="Logo" class="sidebar-logo">
+                <span>Fall Moderators</span>
+            </div>
+            <nav class="sidebar-nav">
                 <button id="new-chat-btn" class="sidebar-button">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2z"/></svg>
-                    <span>Obrolan Baru</span>
+                    <span>New Chat</span>
                 </button>
-            </div>
-            <div class="chat-history">
-                <p>Riwayat</p>
-                <ul id="chat-history-list"></ul>
-            </div>
-            <div class="sidebar-footer">
-                <div class="setting-item">
-                    <span>Mode Tampilan</span>
-                    <label class="theme-switch">
-                        <input type="checkbox" id="theme-switcher">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-            </div>
+            </nav>
         </aside>
+
         <main id="chat-container">
             <header class="chat-header">
-                <button id="menu-toggle-btn" class="header-btn" aria-label="Toggle Menu">
+                <button id="menu-toggle-btn" class="header-btn">
                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M3 18v-2h18v2zm0-5v-2h18v2zm0-5V6h18v2z"/></svg>
                 </button>
                 <div class="header-title">
                     <span>Fall Asisten AI</span>
                 </div>
             </header>
-            <div id="chat-box"></div>
+            
+            <div id="chat-box">
+                </div>
+
             <footer id="input-area">
-                <div class="input-wrapper">
-                    <div id="file-preview-container"></div>
-                    <div class="input-main">
-                        <button id="attach-file-btn" class="input-action-btn" aria-label="Lampirkan File">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2z"/></svg>
+                <div class="input-container">
+                    <textarea id="pesan-input" placeholder="Message Fall Asisten AI..." rows="1"></textarea>
+                    <div class="action-buttons">
+                        <button id="research-btn" class="input-action-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM9 15v-2h6v2zm6-4H9V9h6z"/></svg>
+                            <span>Research</span>
                         </button>
-                        <textarea id="pesan-input" placeholder="Minta sesuatu..." rows="1"></textarea>
-                    </div>
-                    <div class="input-actions">
-                        <button id="mic-btn" class="input-action-btn" aria-label="Gunakan Suara">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3zM19 10v2a7 7 0 0 1-14 0v-2H3v2a8 8 0 0 0 7 7.93V22h2v-2.07A8 8 0 0 0 21 12v-2z"/></svg>
-                        </button>
-                        <button id="kirim-btn" aria-label="Kirim Pesan" class="hidden">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M2.01 21L23 12L2.01 3L2 10l15 2l-15 2z"/></svg>
+                        <button id="attach-file-btn" class="input-action-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M16.5 6v11.5a4 4 0 0 0 8 0V5a2.5 2.5 0 0 0-5 0v10.5a1 1 0 0 0 2 0V6H18v9.5a2.5 2.5 0 0 1-5 0V5c.01-2.21 1.79-4 4-4s4 1.79 4 4v11.5a5.5 5.5 0 0 1-11 0V6z"/></svg>
+                            <span>Upload</span>
                         </button>
                     </div>
                 </div>
-                <p class="disclaimer">Fall Moderators AI dapat membuat kesalahan.</p>
+                <button id="kirim-btn" aria-label="Kirim Pesan" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M4.01 6.03L11.52 9.25L4 8.25zM11.5 14.75L4 17.97v-1.72z" opacity=".3"/><path fill="currentColor" d="M2.01 3L2 10l15 2l-15 2 .01 7L23 12z"/></svg>
+                </button>
             </footer>
         </main>
     </div>
+    
     <div id="sidebar-overlay"></div>
     <input type="file" id="file-input" hidden accept="image/*,.pdf,.txt,.md,.csv">
     <script src="chatbot.js"></script>
 </body>
-        </html>
+</html>
