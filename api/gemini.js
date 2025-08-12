@@ -34,8 +34,12 @@ export default async function handler(req) {
     }
     const data = await googleResponse.json();
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "Maaf, tidak ada respon.";
-    return new Response(JSON.stringify({ text }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    return new Response(JSON.stringify({ text }), {
+      status: 200, headers: { 'Content-Type': 'application/json' },
+    });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500, headers: { 'Content-Type': 'application/json' },
+    });
   }
-}
+          }
