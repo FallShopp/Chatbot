@@ -18,17 +18,39 @@
 
     <div class="app-layout">
         <aside id="sidebar">
-            </aside>
+            <div class="sidebar-header">
+                <img src="https://files.catbox.moe/f2er59.jpg" alt="Logo" class="sidebar-logo">
+                <span>Fall Moderators</span>
+            </div>
+            <nav class="sidebar-nav">
+                <button id="new-chat-btn" class="sidebar-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2z"/></svg>
+                    <span>Obrolan Baru</span>
+                </button>
+            </nav>
+            <div class="chat-history">
+                <p>Riwayat</p>
+                <ul id="chat-history-list"></ul>
+            </div>
+            <div class="sidebar-footer">
+                <div class="setting-item">
+                    <span>Mode Tampilan</span>
+                    <label class="theme-switch">
+                        <input type="checkbox" id="theme-switcher">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </aside>
 
         <main id="chat-container">
             <header class="chat-header">
                 <button id="menu-toggle-btn" class="header-btn">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M3 18v-2h18v2zm0-5v-2h18v2zm0-5V6h18v2z"/></svg>
                 </button>
                 <div class="header-title">
                     <span>Fall Asisten AI</span>
                 </div>
-                <button class="plans-btn">PLANS</button>
             </header>
             
             <div id="chat-box">
@@ -39,15 +61,13 @@
             </div>
 
             <footer id="input-area">
+                <div id="file-preview-container"></div>
                 <div class="input-container">
-                    <textarea id="pesan-input" placeholder="Message Fall Asisten Ai..." rows="1"></textarea>
-                    
+                    <textarea id="pesan-input" placeholder="Message Fall Asisten AI..." rows="1"></textarea>
                     <div class="action-buttons">
-                        <button id="research-btn" class="input-action-btn" aria-label="Research">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM9 15v-2h6v2zm6-4H9V9h6z"/></svg>
-                        </button>
                         <button id="attach-file-btn" class="input-action-btn" aria-label="Upload">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M16.5 6v11.5a4 4 0 0 0 8 0V5a2.5 2.5 0 0 0-5 0v10.5a1 1 0 0 0 2 0V6H18v9.5a2.5 2.5 0 0 1-5 0V5c.01-2.21 1.79-4 4-4s4 1.79 4 4v11.5a5.5 5.5 0 0 1-11 0V6z"/></svg>
+                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M16.5 6v11.5a4 4 0 0 0 8 0V5a2.5 2.5 0 0 0-5 0v10.5a1 1 0 0 0 2 0V6H18v9.5a2.5 2.5 0 0 1-5 0V5c.01-2.21 1.79-4 4-4s4 1.79 4 4v11.5a5.5 5.5 0 0 1-11 0V6z"/></svg>
+                            <span>Upload File</span>
                         </button>
                     </div>
                 </div>
@@ -62,4 +82,4 @@
     <input type="file" id="file-input" hidden accept="image/*,.pdf,.txt,.md,.csv">
     <script src="chatbot.js"></script>
 </body>
-                    </html>
+    </html>
