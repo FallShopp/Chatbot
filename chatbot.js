@@ -5,117 +5,65 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('resize', setAppHeight);
     setAppHeight();
 
-    // --- SELEKSI ELEMEN DOM LENGKAP ---
+    // --- SELEKSI ELEMEN DOM ---
     const chatBox = document.getElementById('chat-box');
     const userInput = document.getElementById('pesan-input');
     const sendButton = document.getElementById('kirim-btn');
-    const micBtn = document.getElementById('mic-btn');
-    const attachFileBtn = document.getElementById('attach-file-btn');
-    const fileInput = document.getElementById('file-input');
-    const filePreviewContainer = document.getElementById('file-preview-container');
+    const welcomeView = document.querySelector('.welcome-view');
     const menuToggleButton = document.getElementById('menu-toggle-btn');
     const sidebar = document.getElementById('sidebar');
     const sidebarOverlay = document.getElementById('sidebar-overlay');
     const newChatButton = document.getElementById('new-chat-btn');
-    const themeSwitcher = document.getElementById('theme-switcher');
-    const highlightThemeLight = document.getElementById('highlight-theme-light');
-    
+    const attachFileBtn = document.getElementById('attach-file-btn');
+    const fileInput = document.getElementById('file-input');
+
     // --- STATE & FUNGSI UTAMA ---
     let conversationHistory = [];
-    let attachedFile = null;
-    let recognition = null;
-    
-    const createWelcomeScreen = () => {
-        chatBox.innerHTML = `
-            <div class="welcome-view">
-                <div class="welcome-header">
-                    <h1 id="welcome-greeting" class="gradient-text"></h1>
-                    <p>Apa yang bisa saya bantu?</p>
-                </div>
-                <div class="suggestion-cards">
-                    <div class="suggestion-card" data-prompt="Jelaskan konsep relativitas Einstein dengan analogi sederhana">
-                        <h3>Jelaskan topik rumit</h3>
-                        <p>Seperti relativitas atau black hole</p>
-                    </div>
-                    <div class="suggestion-card" data-prompt="Tulis sebuah puisi tentang hujan di malam hari">
-                        <h3>Bantu saya menulis</h3>
-                        <p>Seperti email, puisi, atau lirik lagu</p>
-                    </div>
-                </div>
-            </div>`;
-        
-        const hour = new Date().getHours();
-        const greetingElement = document.getElementById('welcome-greeting');
-        if (hour < 11) greetingElement.textContent = "Selamat Pagi";
-        else if (hour < 15) greetingElement.textContent = "Selamat Siang";
-        else if (hour < 19) greetingElement.textContent = "Selamat Sore";
-        else greetingElement.textContent = "Selamat Malam";
 
-        document.querySelectorAll('.suggestion-card').forEach(card => {
-            card.addEventListener('click', () => {
-                userInput.value = card.dataset.prompt;
-                kirimPesan();
-            });
-        });
+    const updateSendButtonState = () => {
+        sendButton.disabled = userInput.value.trim() === '';
     };
 
-    const startNewChat = () => {
-        conversationHistory = [];
-        createWelcomeScreen();
-        userInput.value = '';
-        userInput.focus();
-        removeAttachedFile();
-        updateInputButtons();
-    };
-
-    const tampilkanPesan = (parts, sender) => {
-        const welcomeView = document.querySelector('.welcome-view');
-        if (welcomeView) welcomeView.remove();
-        
+    const tampilkanPesan = (content, sender) => {
+        if (welcomeView) { welcomeView.style.display = 'none'; }
         const messageElement = document.createElement('div');
         messageElement.classList.add('message', sender === 'user' ? 'user-msg' : 'bot-msg');
+        
+        const senderName = sender === 'user' ? 'You' : 'Fall Asisten AI';
 
-        const botAvatar = `<div class="message-avatar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm.29 5.71a1.29 1.29 0 1 1-1.29 1.29 1.29 1.29 0 0 1 1.29-1.29Zm3 9.58a1.29 1.29 0 1 1-1.29 1.29 1.29 1.29 0 0 1 1.29-1.29Zm-6-5a1.5 1.5 0 1 1-1.5 1.5A1.5 1.5 0 0 1 9.29 12.29Z"/></svg></div>`;
-        const userAvatar = `<div class="message-avatar">U</div>`;
+        messageElement.innerHTML = `
+            <div class="message-header">${senderName}</div>
+            <div class="message-content">${marked.parse(content)}</div>
+        `;
         
-        let contentInnerHtml = parts.map(part => {
-            if (part.text) return marked.parse(part.text);
-            return '';
-        }).join('');
-        
-        const contentHtml = `<div class="message-content">${contentInnerHtml}</div>`;
-        messageElement.innerHTML = (sender === 'bot' ? botAvatar : userAvatar) + contentHtml;
         chatBox.appendChild(messageElement);
         chatBox.scrollTop = chatBox.scrollHeight;
     };
 
     const kirimPesan = async () => {
-        const messageText = userInput.value.trim();
-        if (messageText === "" && !attachedFile) return;
+        const promptText = userInput.value.trim();
+        if (promptText === "") return;
 
-        const userParts = [];
-        if (attachedFile) userParts.push(attachedFile.geminiPart);
-        if (messageText) userParts.push({ text: messageText });
-        
-        tampilkanPesan(userParts, 'user');
-        conversationHistory.push({ role: 'user', parts: userParts });
+        tampilkanPesan(promptText, 'user');
+        conversationHistory.push({ role: 'user', parts: [{ text: promptText }] });
         userInput.value = "";
-        removeAttachedFile();
+        updateSendButtonState();
         
-        const thinkingIndicator = document.createElement('div');
-        thinkingIndicator.className = 'thinking-indicator';
-        thinkingIndicator.innerHTML = `<div class="thinking-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm.29 5.71a1.29 1.29 0 1 1-1.29 1.29 1.29 1.29 0 0 1 1.29-1.29Zm3 9.58a1.29 1.29 0 1 1-1.29 1.29 1.29 1.29 0 0 1 1.29-1.29Zm-6-5a1.5 1.5 0 1 1-1.5 1.5A1.5 1.5 0 0 1 9.29 12.29Z"/></svg></div>`;
-        chatBox.appendChild(thinkingIndicator);
+        // Indikator loading bisa ditambahkan di sini
+        const loadingMessage = document.createElement('div');
+        loadingMessage.className = 'message bot-msg';
+        loadingMessage.innerHTML = `<div class="message-header">Fall Asisten AI</div><div class="message-content">...</div>`;
+        chatBox.appendChild(loadingMessage);
         chatBox.scrollTop = chatBox.scrollHeight;
 
         try {
             const botResponse = await geminiChatAi(conversationHistory);
-            chatBox.removeChild(thinkingIndicator);
-            tampilkanPesan([{ text: botResponse }], 'bot');
+            chatBox.removeChild(loadingMessage); // Hapus loading
+            tampilkanPesan(botResponse, 'bot');
             conversationHistory.push({ role: 'model', parts: [{ text: botResponse }] });
         } catch (error) {
-            chatBox.removeChild(thinkingIndicator);
-            tampilkanPesan([{ text: `Maaf, terjadi kesalahan: ${error.message}` }], 'bot');
+            chatBox.removeChild(loadingMessage);
+            tampilkanPesan(`Maaf, terjadi kesalahan: ${error.message}`, 'bot');
         }
     };
 
@@ -127,40 +75,28 @@ document.addEventListener('DOMContentLoaded', () => {
         return data.text;
     };
     
-    // --- LOGIKA UPLOAD FILE & TOMBOL CERDAS ---
-    const updateInputButtons = () => {
-        const hasText = userInput.value.trim() !== '';
-        if (hasText || attachedFile) {
-            micBtn.classList.add('hidden');
-            sendButton.classList.remove('hidden');
-            sendButton.disabled = false;
-        } else {
-            micBtn.classList.remove('hidden');
-            sendButton.classList.add('hidden');
-            sendButton.disabled = true;
-        }
-    };
-    attachFileBtn.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', (event) => { /* ... logika upload file lengkap ... */ });
-    function removeAttachedFile() { attachedFile = null; filePreviewContainer.innerHTML = ''; fileInput.value = ''; updateInputButtons(); }
-
-    const applyTheme = (theme) => {
-        document.body.classList.toggle('dark-mode', theme === 'dark');
-        highlightThemeLight.disabled = theme !== 'dark';
-        localStorage.setItem('geminiChatTheme', theme);
-        themeSwitcher.checked = theme === 'dark';
-    };
-    
     // --- EVENT LISTENERS (SEMUA AKTIF) ---
-    sendButton.addEventListener('click', kirimPesan);
-    userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); kirimPesan(); } });
-    userInput.addEventListener('input', updateInputButtons);
     menuToggleButton.addEventListener('click', () => document.body.classList.toggle('sidebar-visible'));
     sidebarOverlay.addEventListener('click', () => document.body.classList.remove('sidebar-visible'));
-    newChatButton.addEventListener('click', () => { startNewChat(); document.body.classList.remove('sidebar-visible'); });
-    themeSwitcher.addEventListener('change', () => applyTheme(themeSwitcher.checked ? 'dark' : 'light'));
+    userInput.addEventListener('input', updateSendButtonState);
+    sendButton.addEventListener('click', kirimPesan);
+    userInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); kirimPesan(); }
+    });
+    newChatButton.addEventListener('click', () => {
+        location.reload(); // Cara termudah untuk memulai chat baru
+        document.body.classList.remove('sidebar-visible');
+    });
+    attachFileBtn.addEventListener('click', () => {
+        fileInput.click();
+    });
+    fileInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        alert(`File "${file.name}" dipilih! Logika untuk meng-handle file bisa ditambahkan di sini.`);
+        // Di sini Anda bisa menambahkan kembali logika FileReader dari versi sebelumnya
+    });
     
     // --- INISIALISASI ---
-    applyTheme(localStorage.getItem('geminiChatTheme') || 'light');
-    startNewChat();
+    updateSendButtonState();
 });
