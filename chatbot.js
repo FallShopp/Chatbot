@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('resize', setAppHeight);
     setAppHeight();
 
-    // --- SELEKSI ELEMEN DOM LENGKAP ---
+    // --- SELEKSI ELEMEN DOM DENGAN VERIFIKASI ---
     const chatBox = document.getElementById('chat-box');
     const userInput = document.getElementById('pesan-input');
     const sendButton = document.getElementById('kirim-btn');
@@ -16,14 +16,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const newChatButton = document.getElementById('new-chat-btn');
     const attachFileBtn = document.getElementById('attach-file-btn');
     const fileInput = document.getElementById('file-input');
+    const themeSwitcher = document.getElementById('theme-switcher');
     const chatHistoryList = document.getElementById('chat-history-list');
 
-    // --- STATE APLIKASI ---
+    // Cek apakah semua elemen penting ada
+    if (!chatBox || !userInput || !sendButton || !menuToggleButton || !sidebar || !newChatButton || !attachFileBtn) {
+        console.error("Kesalahan Kritis: Satu atau lebih elemen HTML penting tidak ditemukan. Pastikan ID elemen di index.html sudah benar.");
+        return; // Hentikan eksekusi jika ada yang hilang
+    }
+
+    // --- STATE & FUNGSI UTAMA ---
     let allChats = [];
     let currentChatId = null;
     let attachedFile = null;
-
-    // --- FUNGSI UTAMA & MANIPULASI DOM ---
 
     const startNewChat = () => {
         currentChatId = Date.now().toString();
@@ -31,8 +36,8 @@ document.addEventListener('DOMContentLoaded', () => {
         allChats.unshift(newChat);
         
         chatBox.innerHTML = '';
-        chatBox.appendChild(welcomeView);
-        welcomeView.style.display = 'block';
+        if (welcomeView) chatBox.appendChild(welcomeView);
+        if (welcomeView) welcomeView.style.display = 'block';
         
         userInput.value = '';
         removeAttachedFile();
@@ -43,17 +48,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadChat = (chatId) => {
         const chat = allChats.find(c => c.id === chatId);
         if (!chat) return;
-
         currentChatId = chatId;
-        chatBox.innerHTML = ''; // Kosongkan chat box
-        if (chat.messages.length === 0) {
+        chatBox.innerHTML = '';
+        if (chat.messages.length === 0 && welcomeView) {
             chatBox.appendChild(welcomeView);
             welcomeView.style.display = 'block';
         } else {
             chat.messages.forEach(msg => tampilkanPesan(msg.parts, msg.sender));
         }
-
-        renderChatHistory(); // Highlight chat yang aktif
+        renderChatHistory();
         document.body.classList.remove('sidebar-visible');
     };
 
@@ -63,21 +66,15 @@ document.addEventListener('DOMContentLoaded', () => {
         messageElement.classList.add('message', sender === 'user' ? 'user-msg' : 'bot-msg');
         
         const senderName = sender === 'user' ? 'You' : 'Fall Asisten AI';
-        let contentInnerHtml = '';
-
-        parts.forEach(part => {
-            if (part.text) {
-                contentInnerHtml += marked.parse(part.text);
-            } else if (part.inlineData) {
-                // Tampilkan indikasi file terlampir
-                contentInnerHtml += `<p><em>[File terlampir: ${part.inlineData.mimeType}]</em></p>`;
-            }
-        });
+        let contentInnerHtml = parts.map(part => {
+            if (part.text) return marked.parse(part.text);
+            if (part.inlineData) return `<p><em>[File terlampir: ${part.inlineData.mimeType}]</em></p>`;
+            return '';
+        }).join('');
 
         messageElement.innerHTML = `
             <div class="message-header">${senderName}</div>
-            <div class="message-content">${contentInnerHtml}</div>
-        `;
+            <div class="message-content">${contentInnerHtml}</div>`;
         
         chatBox.appendChild(messageElement);
         chatBox.scrollTop = chatBox.scrollHeight;
@@ -127,15 +124,36 @@ document.addEventListener('DOMContentLoaded', () => {
         return data.text;
     };
 
-    // --- FUNGSI RIWAYAT CHAT (LENGKAP & DIPERBAIKI) ---
+    // --- FUNGSI RIWAYAT CHAT & UPLOAD FILE (LENGKAP) ---
+    const updateSendButtonState = () => {
+        sendButton.disabled = userInput.value.trim() === '' && !attachedFile;
+    };
+
+    attachFileBtn.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        if (file.size > 4 * 1024 * 1024) { alert('Ukuran file terlalu besar! Maksimal 4MB.'); fileInput.value = ''; return; }
+        
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const base64Data = reader.result.split(',')[1];
+            attachedFile = { geminiPart: { inlineData: { mimeType: file.type, data: base64Data } } };
+            alert(`File "${file.name}" siap dikirim.`);
+            updateSendButtonState();
+        };
+        reader.readAsDataURL(file);
+    });
+
+    function removeAttachedFile() {
+        attachedFile = null;
+        fileInput.value = '';
+        updateSendButtonState();
+    }
+
     const saveMessageToHistory = (parts, sender) => {
         let chat = allChats.find(c => c.id === currentChatId);
-        
-        // Jika karena suatu hal chat tidak ditemukan, buat baru
-        if (!chat) {
-            startNewChat();
-            chat = allChats[0];
-        }
+        if (!chat) return;
 
         const isNewChat = chat.messages.length === 0;
         chat.messages.push({ parts, sender });
@@ -152,14 +170,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveAllChatsToLocalStorage = () => localStorage.setItem('geminiAllChats', JSON.stringify(allChats));
     const loadAllChatsFromLocalStorage = () => {
         const saved = localStorage.getItem('geminiAllChats');
-        if (saved) {
-            allChats = JSON.parse(saved);
-        }
+        if (saved) { allChats = JSON.parse(saved); }
     };
     const renderChatHistory = () => {
         chatHistoryList.innerHTML = '';
         allChats.forEach(chat => {
-            if(!chat) return;
             const li = document.createElement('li');
             li.textContent = chat.title || "Tanpa Judul";
             li.dataset.chatId = chat.id;
@@ -169,49 +184,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
     
-    // --- FUNGSI UPLOAD FILE (LENGKAP) ---
-    const updateSendButtonState = () => {
-        sendButton.disabled = userInput.value.trim() === '' && !attachedFile;
-    };
-
-    attachFileBtn.addEventListener('click', () => fileInput.click());
-
-    fileInput.addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
-        if (file.size > 4 * 1024 * 1024) { alert('Ukuran file terlalu besar! Maksimal 4MB.'); fileInput.value = ''; return; }
-        
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            const base64Data = reader.result.split(',')[1];
-            attachedFile = { 
-                geminiPart: { inlineData: { mimeType: file.type, data: base64Data } },
-                fileInfo: { name: file.name, type: file.type }
-            };
-            alert(`File "${file.name}" siap dikirim bersama pesan Anda berikutnya.`);
-            updateSendButtonState();
-        };
-        reader.readAsDataURL(file);
-    });
-
-    function removeAttachedFile() {
-        attachedFile = null;
-        fileInput.value = ''; // Reset input file
-        updateSendButtonState();
-    }
-    
     // --- EVENT LISTENERS (SEMUA AKTIF) ---
     menuToggleButton.addEventListener('click', () => document.body.classList.toggle('sidebar-visible'));
     sidebarOverlay.addEventListener('click', () => document.body.classList.remove('sidebar-visible'));
     userInput.addEventListener('input', updateSendButtonState);
     sendButton.addEventListener('click', kirimPesan);
-    userInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); kirimPesan(); }
-    });
-    newChatButton.addEventListener('click', () => {
-        startNewChat();
-        document.body.classList.remove('sidebar-visible');
-    });
+    userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); kirimPesan(); } });
+    newChatButton.addEventListener('click', () => { startNewChat(); document.body.classList.remove('sidebar-visible'); });
+    if (themeSwitcher) {
+        themeSwitcher.addEventListener('change', () => { document.body.classList.toggle('dark-mode'); });
+    }
 
     // --- INISIALISASI ---
     loadAllChatsFromLocalStorage();
