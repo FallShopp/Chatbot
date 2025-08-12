@@ -1,13 +1,7 @@
 :root {
-    --bg-primary: #FFFFFF; --bg-secondary: #F0F2F5; --text-primary: #1f1f1f;
-    --text-secondary: #5f6368; --accent-color: #1a73e8; --user-msg-bg: #d9e7ff;
-    --border-color: #e0e0e0; --font-family: 'Inter', sans-serif;
-    --app-height: 100vh;
-}
-body.dark-mode {
-    --bg-primary: #1e1e1e; --bg-secondary: #252526; --bg-tertiary: #333333;
-    --user-msg-bg: #303742; --border-color: #444444; --text-primary: #e0e0e0;
-    --text-secondary: #a0a0a0; --accent-color: #8ab4f8;
+    --bg-primary: #FFFFFF; --bg-secondary: #F7F7F8; --text-primary: #181818;
+    --text-secondary: #65676B; --border-color: #EAEAEA; --accent-color: #181818;
+    --font-family: 'Inter', sans-serif; --app-height: 100vh;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html, body { font-family: var(--font-family); background-color: var(--bg-primary); color: var(--text-primary); overflow: hidden; }
@@ -16,27 +10,20 @@ html, body { font-family: var(--font-family); background-color: var(--bg-primary
 /* --- SIDEBAR --- */
 #sidebar {
     position: fixed; top: 0; left: 0; width: 280px; height: 100%;
-    background-color: #F0F2F5; border-right: 1px solid var(--border-color);
+    background-color: var(--bg-primary); border-right: 1px solid var(--border-color);
     display: flex; flex-direction: column; padding: 16px;
     transform: translateX(-100%); transition: transform 0.3s ease-in-out; z-index: 100;
 }
-body.dark-mode #sidebar { background-color: #252526; }
 body.sidebar-visible #sidebar { transform: translateX(0); }
-.sidebar-header { flex-shrink: 0; }
-.sidebar-button { width: 100%; display: flex; align-items: center; gap: 16px; padding: 10px; border-radius: 20px; border: none; background: none; color: var(--text-primary); font-size: 14px; cursor: pointer; text-align: left; font-family: var(--font-family); margin-bottom: 8px; transition: background-color 0.2s; }
-.sidebar-button:hover { background-color: #e2e6eb; }
-body.dark-mode .sidebar-button:hover { background-color: var(--bg-tertiary); }
-.chat-history { margin-top: 1rem; flex-grow: 1; overflow-y: auto; }
-.chat-history p { font-size: 14px; font-weight: 500; color: var(--text-secondary); padding: 0 10px 8px 10px; }
-#chat-history-list { list-style: none; }
-#chat-history-list li { padding: 10px; cursor: pointer; border-radius: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 14px; }
-#chat-history-list li:hover { background-color: #e2e6eb; }
-body.dark-mode #chat-history-list li:hover { background-color: var(--bg-tertiary); }
-#chat-history-list li.active { background-color: #d9e7ff; color: #0b57d0; font-weight: 500; }
-body.dark-mode #chat-history-list li.active { background-color: #303742; color: #8ab4f8; }
-.sidebar-footer { flex-shrink: 0; border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: auto; }
-.setting-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 4px; }
-.theme-switch { /* ...gaya switch... */ }
+.sidebar-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+.sidebar-logo { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; }
+.sidebar-nav button {
+    width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px;
+    border-radius: 8px; border: none; background: none; color: var(--text-primary);
+    font-size: 15px; cursor: pointer; text-align: left;
+    font-family: var(--font-family); margin-bottom: 8px; transition: background-color 0.2s;
+}
+.sidebar-nav button:hover { background-color: var(--bg-secondary); }
 
 /* --- AREA CHAT UTAMA --- */
 #chat-container { width: 100%; flex-grow: 1; display: flex; flex-direction: column; height: 100%; }
@@ -44,40 +31,70 @@ body.dark-mode #chat-history-list li.active { background-color: #303742; color: 
     display: flex; align-items: center; justify-content: space-between;
     padding: 12px 16px; border-bottom: 1px solid var(--border-color); flex-shrink: 0;
 }
-.header-btn { background: none; border: none; cursor: pointer; color: var(--text-primary); padding: 8px; border-radius: 50%; }
-#chat-box { flex-grow: 1; overflow-y: auto; padding: 24px; height: 0; width: 100%; max-width: 840px; margin: 0 auto; }
+.header-btn { background: none; border: none; cursor: pointer; color: var(--text-primary); padding: 8px; }
+.header-title { font-weight: 600; }
+#chat-box { 
+    flex-grow: 1; overflow-y: auto; padding: 24px; height: 0; 
+    width: 100%; max-width: 840px; margin: 0 auto;
+    display: flex; flex-direction: column;
+}
+.welcome-view { text-align: center; margin: auto; animation: fadeIn 1s ease-in-out; }
+.welcome-view h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+.welcome-view p { font-size: 14px; color: var(--text-secondary); }
 
-/* Halaman Selamat Datang & Tampilan Chat ala Gemini */
-.welcome-view { display: flex; flex-direction: column; justify-content: space-between; height: 100%; }
-.welcome-header h1 { font-size: clamp(2.5rem, 8vw, 3.5rem); font-weight: 600; color: #c4c7c5; }
-.welcome-header .gradient-text { background: -webkit-linear-gradient(45deg, #4285f4, #9b72cb 25%, #d96570 50%, #f2a600 75%, #0f9d58); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.suggestion-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
-.suggestion-card { background-color: var(--bg-secondary); border-radius: 12px; padding: 16px; cursor: pointer; transition: background-color 0.2s; }
-.suggestion-card:hover { background-color: #dbe1e9; }
-.message { display: flex; gap: 16px; margin-bottom: 32px; animation: fadeIn 0.5s ease-out; }
+/* Gaya Pesan Chat */
+.message { 
+    display: flex; flex-direction: column;
+    margin-bottom: 24px; 
+    animation: fadeIn 0.5s ease-out; 
+    max-width: 90%;
+}
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-.message-avatar { width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; display: flex; justify-content: center; align-items: center; background-color: var(--bg-secondary); }
-.user-msg .message-avatar { background-color: #d1c4e9; color: #4527a0; font-weight: 600; }
-.message-content { line-height: 1.7; width: 100%; padding-top: 8px; }
-.user-msg .message-content { padding: 12px 16px; border-radius: 20px; background-color: var(--user-msg-bg); }
-.message-content pre { background-color: var(--bg-secondary); border-radius: 8px; margin: 1em 0; border: 1px solid var(--border-color); }
-.thinking-indicator { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
-.thinking-logo svg { width: 40px; height: 40px; animation: spin 1.5s linear infinite; color: var(--accent-color); }
-@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.bot-msg { align-self: flex-start; align-items: flex-start; }
+.user-msg { align-self: flex-end; align-items: flex-end; }
+.message-header { font-weight: 600; margin-bottom: 8px; font-size: 16px; }
+.message-content { line-height: 1.7; }
 
-/* --- AREA INPUT ALA GEMINI --- */
-#input-area { padding: 8px 16px 16px 16px; flex-shrink: 0; width: 100%; max-width: 840px; margin: 0 auto; }
-.input-wrapper { background-color: var(--bg-secondary); border-radius: 28px; padding: 4px; border: 1px solid transparent; transition: all 0.2s; display: flex; flex-direction: column; }
-.input-wrapper:focus-within { border-color: #c4c7c5; background-color: var(--bg-primary); }
-#file-preview-container { padding: 12px 16px 0 16px; }
-.input-main { display: flex; align-items: center; padding: 0 8px; }
-#pesan-input { width: 100%; border: none; background: none; outline: none; resize: none; color: var(--text-primary); font-size: 16px; line-height: 1.5; max-height: 200px; padding: 12px 8px; }
-.input-actions { display: flex; justify-content: space-between; align-items: center; padding: 0 8px; }
-.actions-right { display: flex; align-items: center; gap: 4px; }
-.input-action-btn { background: none; border: none; cursor: pointer; color: var(--text-secondary); padding: 8px; border-radius: 50%; display: flex; }
-.input-action-btn:hover { background-color: #dbe1e9; }
-#kirim-btn { background-color: var(--accent-color); color: white; width: 36px; height: 36px; border-radius: 50%; transition: all 0.2s; }
-#mic-btn.hidden, #kirim-btn.hidden { display: none; }
-.disclaimer { font-size: 12px; text-align: center; color: var(--text-secondary); margin-top: 12px; }
+/* --- AREA INPUT DIRAPIKAN --- */
+#input-area {
+    padding: 16px; flex-shrink: 0;
+    display: flex; align-items: flex-end; gap: 12px;
+    width: 100%; max-width: 840px; margin: 0 auto;
+    border-top: 1px solid var(--border-color);
+}
+.input-container {
+    flex-grow: 1;
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 16px; 
+    padding: 12px;
+}
+#pesan-input {
+    width: 100%; border: none; background: none; outline: none; resize: none;
+    color: var(--text-primary); font-family: var(--font-family); font-size: 16px;
+    line-height: 1.4; max-height: 150px;
+    margin-bottom: 12px;
+}
+.action-buttons {
+    display: flex; gap: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color);
+}
+.input-action-btn {
+    background: none; border: none;
+    padding: 0; font-size: 14px; display: flex; align-items: center;
+    gap: 6px; color: var(--text-secondary); cursor: pointer;
+    transition: color 0.2s;
+}
+.input-action-btn:hover { color: var(--text-primary); }
+#kirim-btn {
+    width: 44px; height: 44px; border-radius: 50%; border: none;
+    background-color: var(--accent-color); color: var(--bg-primary);
+    display: flex; justify-content: center; align-items: center;
+    cursor: pointer; flex-shrink: 0; transition: background-color 0.2s;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+#kirim-btn:disabled { background-color: #BCC0C4; cursor: not-allowed; box-shadow: none; }
+
 #sidebar-overlay { display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); z-index: 99; }
 body.sidebar-visible #sidebar-overlay { display: block; }
