@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('resize', setAppHeight);
     setAppHeight();
 
-    // --- SELEKSI ELEMEN DOM ---
+    // --- SELEKSI ELEMEN DOM LENGKAP ---
     const chatBox = document.getElementById('chat-box');
     const userInput = document.getElementById('pesan-input');
     const sendButton = document.getElementById('kirim-btn');
@@ -16,12 +16,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const newChatButton = document.getElementById('new-chat-btn');
     const attachFileBtn = document.getElementById('attach-file-btn');
     const fileInput = document.getElementById('file-input');
+    const themeSwitcher = document.getElementById('theme-switcher');
+    const chatHistoryList = document.getElementById('chat-history-list');
 
     // --- STATE & FUNGSI UTAMA ---
-    let conversationHistory = [];
+    let allChats = [];
+    let currentChatId = null;
 
-    const updateSendButtonState = () => {
-        sendButton.disabled = userInput.value.trim() === '';
+    // Fungsi untuk memulai atau memuat obrolan baru
+    const startNewChat = () => {
+        currentChatId = Date.now().toString();
+        const newChat = { id: currentChatId, title: "Obrolan Baru", messages: [] };
+        allChats.unshift(newChat); // Tambahkan ke awal
+        chatBox.innerHTML = '';
+        chatBox.appendChild(welcomeView);
+        welcomeView.style.display = 'block';
+        updateSendButtonState();
+        renderChatHistory();
+    };
+
+    const loadChat = (chatId) => {
+        const chat = allChats.find(c => c.id === chatId);
+        if (!chat) return;
+        currentChatId = chatId;
+        chatBox.innerHTML = '';
+        chat.messages.forEach(msg => tampilkanPesan(msg.content, msg.sender));
+        renderChatHistory();
+        document.body.classList.remove('sidebar-visible');
     };
 
     const tampilkanPesan = (content, sender) => {
@@ -45,22 +66,27 @@ document.addEventListener('DOMContentLoaded', () => {
         if (promptText === "") return;
 
         tampilkanPesan(promptText, 'user');
-        conversationHistory.push({ role: 'user', parts: [{ text: promptText }] });
+        saveMessageToHistory(promptText, 'user');
+
         userInput.value = "";
         updateSendButtonState();
         
-        // Indikator loading bisa ditambahkan di sini
         const loadingMessage = document.createElement('div');
         loadingMessage.className = 'message bot-msg';
-        loadingMessage.innerHTML = `<div class="message-header">Fall Asisten AI</div><div class="message-content">...</div>`;
+        loadingMessage.innerHTML = `<div class="message-header">Fall Asisten AI</div><div class="message-content typing-indicator">Sedang berpikir...</div>`;
         chatBox.appendChild(loadingMessage);
         chatBox.scrollTop = chatBox.scrollHeight;
 
         try {
-            const botResponse = await geminiChatAi(conversationHistory);
-            chatBox.removeChild(loadingMessage); // Hapus loading
+            const currentConversation = allChats.find(c => c.id === currentChatId).messages.map(m => ({
+                role: m.sender === 'user' ? 'user' : 'model',
+                parts: [{ text: m.content }],
+            }));
+
+            const botResponse = await geminiChatAi(currentConversation);
+            chatBox.removeChild(loadingMessage);
             tampilkanPesan(botResponse, 'bot');
-            conversationHistory.push({ role: 'model', parts: [{ text: botResponse }] });
+            saveMessageToHistory(botResponse, 'bot');
         } catch (error) {
             chatBox.removeChild(loadingMessage);
             tampilkanPesan(`Maaf, terjadi kesalahan: ${error.message}`, 'bot');
@@ -74,29 +100,71 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = await response.json();
         return data.text;
     };
+
+    // --- FUNGSI RIWAYAT CHAT (LENGKAP & DIPERBAIKI) ---
+    const saveMessageToHistory = (content, sender) => {
+        let chat = allChats.find(c => c.id === currentChatId);
+        const isNewChat = !chat || chat.messages.length === 0;
+
+        if (!chat) { // Jika chat tidak ada sama sekali (kasus yang jarang terjadi)
+             chat = { id: currentChatId, title: "Obrolan Error", messages: [] };
+             allChats.unshift(chat);
+        }
+
+        chat.messages.push({ content, sender });
+        
+        // Jika ini pesan pertama, update judulnya
+        if (isNewChat && sender === 'user') {
+            chat.title = content.substring(0, 30) + (content.length > 30 ? '...' : '');
+        }
+        
+        saveAllChatsToLocalStorage();
+        renderChatHistory(); // Perbarui sidebar setiap ada pesan baru
+    };
+
+    const saveAllChatsToLocalStorage = () => localStorage.setItem('geminiAllChats', JSON.stringify(allChats));
+    const loadAllChatsFromLocalStorage = () => {
+        const saved = localStorage.getItem('geminiAllChats');
+        if (saved) {
+            allChats = JSON.parse(saved);
+        }
+    };
+    const renderChatHistory = () => {
+        chatHistoryList.innerHTML = '';
+        allChats.forEach(chat => {
+            if(!chat) return;
+            const li = document.createElement('li');
+            li.textContent = chat.title || "Tanpa Judul";
+            li.dataset.chatId = chat.id;
+            if (chat.id === currentChatId) li.classList.add('active');
+            li.addEventListener('click', () => loadChat(chat.id));
+            chatHistoryList.appendChild(li);
+        });
+    };
     
+    const updateSendButtonState = () => {
+        sendButton.disabled = userInput.value.trim() === '';
+    };
+
     // --- EVENT LISTENERS (SEMUA AKTIF) ---
     menuToggleButton.addEventListener('click', () => document.body.classList.toggle('sidebar-visible'));
     sidebarOverlay.addEventListener('click', () => document.body.classList.remove('sidebar-visible'));
     userInput.addEventListener('input', updateSendButtonState);
     sendButton.addEventListener('click', kirimPesan);
-    userInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); kirimPesan(); }
+    userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); kirimPesan(); } });
+    newChatButton.addEventListener('click', () => { startNewChat(); document.body.classList.remove('sidebar-visible'); });
+    attachFileBtn.addEventListener('click', () => alert('Fitur upload file akan segera diaktifkan sepenuhnya!'));
+    themeSwitcher.addEventListener('change', () => {
+        document.body.classList.toggle('dark-mode');
+        localStorage.setItem('geminiChatTheme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
     });
-    newChatButton.addEventListener('click', () => {
-        location.reload(); // Cara termudah untuk memulai chat baru
-        document.body.classList.remove('sidebar-visible');
-    });
-    attachFileBtn.addEventListener('click', () => {
-        fileInput.click();
-    });
-    fileInput.addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
-        alert(`File "${file.name}" dipilih! Logika untuk meng-handle file bisa ditambahkan di sini.`);
-        // Di sini Anda bisa menambahkan kembali logika FileReader dari versi sebelumnya
-    });
-    
+
     // --- INISIALISASI ---
-    updateSendButtonState();
+    loadAllChatsFromLocalStorage();
+    const savedTheme = localStorage.getItem('geminiChatTheme');
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+        themeSwitcher.checked = true;
+    }
+    startNewChat();
 });
