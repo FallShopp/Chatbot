@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fall Moderators AI</title>
+    <title>Fall Asisten AI</title>
     <link rel="icon" href="https://files.catbox.moe/f2er59.jpg" type="image/x-icon">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,11 +19,15 @@
     <div class="app-layout">
         <aside id="sidebar">
             <div class="sidebar-header">
+                <img src="https://files.catbox.moe/f2er59.jpg" alt="Logo" class="sidebar-logo">
+                <span>Fall Moderators</span>
+            </div>
+            <nav class="sidebar-nav">
                 <button id="new-chat-btn" class="sidebar-button">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2z"/></svg>
                     <span>Obrolan Baru</span>
                 </button>
-            </div>
+            </nav>
             <div class="chat-history">
                 <p>Riwayat</p>
                 <ul id="chat-history-list"></ul>
@@ -53,28 +57,24 @@
                 </div>
 
             <footer id="input-area">
+                <div id="file-preview-container"></div>
                 <div class="input-wrapper">
-                    <div id="file-preview-container"></div>
                     <div class="input-main">
-                        <textarea id="pesan-input" placeholder="Minta sesuatu..." rows="1"></textarea>
+                        <button id="attach-file-btn" class="input-action-btn" aria-label="Lampirkan File">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2z"/></svg>
+                        </button>
+                        <textarea id="pesan-input" placeholder="Minta Fall Asisten AI..." rows="1"></textarea>
                     </div>
                     <div class="input-actions">
-                        <div class="actions-left">
-                            <button id="attach-file-btn" class="input-action-btn" aria-label="Lampirkan File">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2z"/></svg>
-                            </button>
-                        </div>
-                        <div class="actions-right">
-                             <button id="mic-btn" class="input-action-btn" aria-label="Gunakan Suara">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3zM19 10v2a7 7 0 0 1-14 0v-2H3v2a8 8 0 0 0 7 7.93V22h2v-2.07A8 8 0 0 0 21 12v-2z"/></svg>
-                            </button>
-                            <button id="kirim-btn" aria-label="Kirim Pesan" class="hidden">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M2.01 21L23 12L2.01 3L2 10l15 2l-15 2z"/></svg>
-                            </button>
-                        </div>
+                        <button id="mic-btn" class="input-action-btn" aria-label="Gunakan Suara">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3zM19 10v2a7 7 0 0 1-14 0v-2H3v2a8 8 0 0 0 7 7.93V22h2v-2.07A8 8 0 0 0 21 12v-2z"/></svg>
+                        </button>
+                        <button id="kirim-btn" aria-label="Kirim Pesan" class="hidden">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M2.01 21L23 12L2.01 3L2 10l15 2l-15 2z"/></svg>
+                        </button>
                     </div>
                 </div>
-                <p class="disclaimer">Fall Moderators AI dapat membuat kesalahan. Selalu verifikasi informasi penting.</p>
+                <p class="disclaimer">Fall Moderators AI dapat membuat kesalahan</p>
             </footer>
         </main>
     </div>
@@ -83,4 +83,4 @@
     <input type="file" id="file-input" hidden accept="image/*,.pdf,.txt,.md,.csv">
     <script src="chatbot.js"></script>
 </body>
-                </html>
+    </html>
