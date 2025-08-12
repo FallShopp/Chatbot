@@ -3,6 +3,10 @@
     --text-secondary: #65676B; --border-color: #EAEAEA; --accent-color: #181818;
     --font-family: 'Inter', sans-serif; --app-height: 100vh;
 }
+body.dark-mode {
+    --bg-primary: #1e1e1e; --bg-secondary: #252526; --text-primary: #d4d4d4;
+    --text-secondary: #a0a0a0; --border-color: #444444;
+}
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html, body { font-family: var(--font-family); background-color: var(--bg-primary); color: var(--text-primary); overflow: hidden; }
 .app-layout { display: flex; height: var(--app-height); position: relative; }
@@ -24,6 +28,9 @@ body.sidebar-visible #sidebar { transform: translateX(0); }
     font-family: var(--font-family); margin-bottom: 8px; transition: background-color 0.2s;
 }
 .sidebar-nav button:hover { background-color: var(--bg-secondary); }
+.chat-history { margin-top: 1rem; flex-grow: 1; overflow-y: auto; }
+.sidebar-footer { border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: auto; }
+.setting-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 4px; }
 
 /* --- AREA CHAT UTAMA --- */
 #chat-container { width: 100%; flex-grow: 1; display: flex; flex-direction: column; height: 100%; }
@@ -54,6 +61,7 @@ body.sidebar-visible #sidebar { transform: translateX(0); }
 .user-msg { align-self: flex-end; align-items: flex-end; }
 .message-header { font-weight: 600; margin-bottom: 8px; font-size: 16px; }
 .message-content { line-height: 1.7; }
+.typing-indicator { font-style: italic; color: var(--text-secondary); }
 
 /* --- AREA INPUT DIRAPIKAN --- */
 #input-area {
@@ -77,8 +85,8 @@ body.sidebar-visible #sidebar { transform: translateX(0); }
 }
 .action-buttons {
     display: flex; gap: 12px;
-    padding-top: 12px;
     border-top: 1px solid var(--border-color);
+    padding-top: 12px;
 }
 .input-action-btn {
     background: none; border: none;
