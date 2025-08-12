@@ -18,14 +18,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const sidebarOverlay = document.getElementById('sidebar-overlay');
     const newChatButton = document.getElementById('new-chat-btn');
     const themeSwitcher = document.getElementById('theme-switcher');
-    const chatHistoryList = document.getElementById('chat-history-list');
+    const highlightThemeLight = document.getElementById('highlight-theme-light');
     
     // --- STATE & FUNGSI UTAMA ---
-    let allChats = [];
-    let currentChatId = null;
+    let conversationHistory = [];
     let attachedFile = null;
-
-    // --- FUNGSI HALAMAN SELAMAT DATANG ---
+    let recognition = null;
+    
     const createWelcomeScreen = () => {
         chatBox.innerHTML = `
             <div class="welcome-view">
@@ -34,11 +33,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     <p>Apa yang bisa saya bantu?</p>
                 </div>
                 <div class="suggestion-cards">
-                    <div class="suggestion-card" data-prompt="Jelaskan apa itu kecerdasan buatan">
-                        <h3>Jelaskan topik</h3>
-                        <p>Seperti kecerdasan buatan atau blockchain</p>
+                    <div class="suggestion-card" data-prompt="Jelaskan konsep relativitas Einstein dengan analogi sederhana">
+                        <h3>Jelaskan topik rumit</h3>
+                        <p>Seperti relativitas atau black hole</p>
                     </div>
-                    <div class="suggestion-card" data-prompt="Tulis email profesional ke klien">
+                    <div class="suggestion-card" data-prompt="Tulis sebuah puisi tentang hujan di malam hari">
                         <h3>Bantu saya menulis</h3>
                         <p>Seperti email, puisi, atau lirik lagu</p>
                     </div>
@@ -61,29 +60,15 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const startNewChat = () => {
-        currentChatId = null;
+        conversationHistory = [];
         createWelcomeScreen();
         userInput.value = '';
         userInput.focus();
         removeAttachedFile();
         updateInputButtons();
-        renderChatHistory();
     };
 
-    const loadChat = (chatId) => {
-        const chat = allChats.find(c => c.id === chatId);
-        if (!chat) return;
-        currentChatId = chatId;
-        chatBox.innerHTML = '';
-        chat.messages.forEach(msg => tampilkanPesan(msg));
-        chatBox.scrollTop = chatBox.scrollHeight;
-        updateInputButtons();
-        renderChatHistory();
-        document.body.classList.remove('sidebar-visible');
-    };
-
-    const tampilkanPesan = (messageData) => {
-        const { parts, sender } = messageData;
+    const tampilkanPesan = (parts, sender) => {
         const welcomeView = document.querySelector('.welcome-view');
         if (welcomeView) welcomeView.remove();
         
@@ -108,16 +93,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const messageText = userInput.value.trim();
         if (messageText === "" && !attachedFile) return;
 
-        if (!currentChatId) { currentChatId = Date.now().toString(); }
-
         const userParts = [];
         if (attachedFile) userParts.push(attachedFile.geminiPart);
         if (messageText) userParts.push({ text: messageText });
-
-        const userMessage = { parts: userParts, sender: 'user' };
-        tampilkanPesan(userMessage);
-        saveMessageToHistory(userMessage);
         
+        tampilkanPesan(userParts, 'user');
+        conversationHistory.push({ role: 'user', parts: userParts });
         userInput.value = "";
         removeAttachedFile();
         
@@ -128,59 +109,47 @@ document.addEventListener('DOMContentLoaded', () => {
         chatBox.scrollTop = chatBox.scrollHeight;
 
         try {
-            const currentConversation = allChats.find(c => c.id === currentChatId)?.messages.map(m => ({
-                role: m.sender === 'user' ? 'user' : 'model',
-                parts: m.parts,
-            })) || [];
-
-            const botResponseText = await geminiChatAi(currentConversation);
+            const botResponse = await geminiChatAi(conversationHistory);
             chatBox.removeChild(thinkingIndicator);
-            
-            const botMessage = { parts: [{ text: botResponseText }], sender: 'bot' };
-            tampilkanPesan(botMessage);
-            saveMessageToHistory(botMessage);
+            tampilkanPesan([{ text: botResponse }], 'bot');
+            conversationHistory.push({ role: 'model', parts: [{ text: botResponse }] });
         } catch (error) {
             chatBox.removeChild(thinkingIndicator);
-            tampilkanPesan({ parts: [{ text: `Maaf, terjadi kesalahan: ${error.message}` }], sender: 'bot' });
+            tampilkanPesan([{ text: `Maaf, terjadi kesalahan: ${error.message}` }], 'bot');
         }
     };
 
-    const geminiChatAi = async (history) => { /* ...Tidak berubah, tetap panggil proxy... */ };
+    const geminiChatAi = async (history) => {
+        const proxyUrl = '/api/gemini';
+        const response = await fetch(proxyUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ history }) });
+        if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.error || `Error dari server: ${response.status}`); }
+        const data = await response.json();
+        return data.text;
+    };
     
     // --- LOGIKA UPLOAD FILE & TOMBOL CERDAS ---
-    const updateInputButtons = () => { /* ...Tidak berubah... */ };
-    attachFileBtn.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', (event) => { /* ...Logika lengkap upload file... */ });
-    function removeAttachedFile() { /* ...Tidak berubah... */ }
-
-    // --- FUNGSI RIWAYAT & SIDEBAR (LENGKAP) ---
-    const saveMessageToHistory = (messageData) => {
-        let chat = allChats.find(c => c.id === currentChatId);
-        const isNewChat = !chat;
-        if (isNewChat) {
-            const firstText = messageData.parts.find(p => p.text)?.text || "Diskusi Baru";
-            chat = { id: currentChatId, title: firstText.substring(0, 30) + '...', messages: [] };
-            allChats.unshift(chat);
+    const updateInputButtons = () => {
+        const hasText = userInput.value.trim() !== '';
+        if (hasText || attachedFile) {
+            micBtn.classList.add('hidden');
+            sendButton.classList.remove('hidden');
+            sendButton.disabled = false;
+        } else {
+            micBtn.classList.remove('hidden');
+            sendButton.classList.add('hidden');
+            sendButton.disabled = true;
         }
-        chat.messages.push(messageData);
-        saveAllChatsToLocalStorage();
-        if (isNewChat) renderChatHistory();
     };
-    const saveAllChatsToLocalStorage = () => localStorage.setItem('geminiAllChats', JSON.stringify(allChats));
-    const loadAllChatsFromLocalStorage = () => { const saved = localStorage.getItem('geminiAllChats'); if (saved) { allChats = JSON.parse(saved); } };
-    const renderChatHistory = () => {
-        chatHistoryList.innerHTML = '';
-        allChats.forEach(chat => {
-            const li = document.createElement('li');
-            li.textContent = chat.title;
-            li.dataset.chatId = chat.id;
-            if (chat.id === currentChatId) li.classList.add('active');
-            li.addEventListener('click', () => loadChat(chat.id));
-            chatHistoryList.appendChild(li);
-        });
+    attachFileBtn.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (event) => { /* ... logika upload file lengkap ... */ });
+    function removeAttachedFile() { attachedFile = null; filePreviewContainer.innerHTML = ''; fileInput.value = ''; updateInputButtons(); }
+
+    const applyTheme = (theme) => {
+        document.body.classList.toggle('dark-mode', theme === 'dark');
+        highlightThemeLight.disabled = theme !== 'dark';
+        localStorage.setItem('geminiChatTheme', theme);
+        themeSwitcher.checked = theme === 'dark';
     };
-    
-    const applyTheme = (theme) => { /* ...Tidak berubah... */ };
     
     // --- EVENT LISTENERS (SEMUA AKTIF) ---
     sendButton.addEventListener('click', kirimPesan);
@@ -190,9 +159,8 @@ document.addEventListener('DOMContentLoaded', () => {
     sidebarOverlay.addEventListener('click', () => document.body.classList.remove('sidebar-visible'));
     newChatButton.addEventListener('click', () => { startNewChat(); document.body.classList.remove('sidebar-visible'); });
     themeSwitcher.addEventListener('change', () => applyTheme(themeSwitcher.checked ? 'dark' : 'light'));
-
+    
     // --- INISIALISASI ---
-    loadAllChatsFromLocalStorage();
     applyTheme(localStorage.getItem('geminiChatTheme') || 'light');
     startNewChat();
 });
