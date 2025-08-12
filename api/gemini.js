@@ -80,4 +80,4 @@ export default async function handler(req) {
       status: 500, headers: { 'Content-Type': 'application/json' },
     });
   }
-        }
+}
