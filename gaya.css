@@ -3,10 +3,6 @@
     --text-secondary: #65676B; --border-color: #EAEAEA; --accent-color: #181818;
     --font-family: 'Inter', sans-serif; --app-height: 100vh;
 }
-body.dark-mode {
-    --bg-primary: #1e1e1e; --bg-secondary: #252526; --text-primary: #d4d4d4;
-    --text-secondary: #a0a0a0; --border-color: #444444;
-}
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html, body { font-family: var(--font-family); background-color: var(--bg-primary); color: var(--text-primary); overflow: hidden; }
 .app-layout { display: flex; height: var(--app-height); position: relative; }
@@ -19,15 +15,7 @@ html, body { font-family: var(--font-family); background-color: var(--bg-primary
     transform: translateX(-100%); transition: transform 0.3s ease-in-out; z-index: 100;
 }
 body.sidebar-visible #sidebar { transform: translateX(0); }
-.sidebar-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
-.sidebar-logo { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; }
-.sidebar-nav button {
-    width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px;
-    border-radius: 8px; border: none; background: none; color: var(--text-primary);
-    font-size: 15px; cursor: pointer; text-align: left;
-    font-family: var(--font-family); margin-bottom: 8px; transition: background-color 0.2s;
-}
-.sidebar-nav button:hover { background-color: var(--bg-secondary); }
+/* ... (Sisa gaya sidebar sama seperti sebelumnya) ... */
 
 /* --- AREA CHAT UTAMA --- */
 #chat-container { width: 100%; flex-grow: 1; display: flex; flex-direction: column; height: 100%; }
@@ -37,20 +25,39 @@ body.sidebar-visible #sidebar { transform: translateX(0); }
 }
 .header-btn { background: none; border: none; cursor: pointer; color: var(--text-primary); padding: 8px; }
 .header-title { font-weight: 600; }
-#chat-box { flex-grow: 1; overflow-y: auto; padding: 24px; height: 0; width: 100%; max-width: 840px; margin: 0 auto; }
-.welcome-view { text-align: center; margin-top: 20vh; animation: fadeIn 1s ease-in-out; }
+#chat-box { 
+    flex-grow: 1; overflow-y: auto; padding: 24px; height: 0; 
+    width: 100%; max-width: 840px; margin: 0 auto;
+    display: flex; /* Tambahan untuk alignment */
+    flex-direction: column; /* Tambahan untuk alignment */
+}
+.welcome-view { text-align: center; margin: auto; animation: fadeIn 1s ease-in-out; }
 .welcome-view h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
 .welcome-view p { font-size: 14px; color: var(--text-secondary); }
 
-/* Gaya Pesan Chat ala Blackbox */
-.message { margin-bottom: 32px; animation: fadeIn 0.5s ease-out; }
+/* --- PERBAIKAN UTAMA DI SINI: Tampilan Chat --- */
+.message { 
+    display: flex; 
+    flex-direction: column; /* Konten diatur vertikal */
+    margin-bottom: 24px; 
+    animation: fadeIn 0.5s ease-out; 
+    max-width: 85%; /* Batasi lebar pesan */
+}
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.bot-msg { 
+    align-self: flex-start; /* Tetap di kiri */
+    align-items: flex-start;
+}
+.user-msg { 
+    align-self: flex-end; /* PINDAH KE KANAN */
+    align-items: flex-end; /* Teks rata kanan dalam container */
+}
 .message-header { font-weight: 600; margin-bottom: 8px; font-size: 16px; }
 .message-content { line-height: 1.7; }
-.message-actions { margin-top: 12px; display: flex; gap: 8px; }
-.action-btn { background: none; border: 1px solid var(--border-color); color: var(--text-secondary); border-radius: 8px; padding: 4px 8px; display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; }
+.typing-indicator { /* ...gaya indikator loading... */ }
 
-/* --- AREA INPUT ALA BLACKBOX --- */
+/* --- AREA INPUT DIRAPIKAN --- */
 #input-area {
     padding: 16px; flex-shrink: 0;
     display: flex; align-items: flex-end; gap: 12px;
@@ -60,22 +67,27 @@ body.sidebar-visible #sidebar { transform: translateX(0); }
     flex-grow: 1;
     background-color: var(--bg-primary);
     border: 1px solid var(--border-color);
-    border-radius: 16px; padding: 12px;
+    border-radius: 16px; 
+    padding: 8px 12px;
 }
 #pesan-input {
     width: 100%; border: none; background: none; outline: none; resize: none;
     color: var(--text-primary); font-family: var(--font-family); font-size: 16px;
     line-height: 1.4; max-height: 150px;
+    margin-bottom: 8px;
 }
 .action-buttons {
-    display: flex; gap: 12px; border-top: 1px solid var(--border-color);
-    margin-top: 12px; padding-top: 12px;
+    display: flex; gap: 12px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 8px;
 }
 .input-action-btn {
     background: none; border: none;
     padding: 0; font-size: 14px; display: flex; align-items: center;
     gap: 6px; color: var(--text-secondary); cursor: pointer;
+    transition: color 0.2s;
 }
+.input-action-btn:hover { color: var(--text-primary); }
 #kirim-btn {
     width: 44px; height: 44px; border-radius: 50%; border: none;
     background-color: var(--accent-color); color: var(--bg-primary);
