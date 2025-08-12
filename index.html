@@ -8,46 +8,18 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
-    <link rel="stylesheet" id="highlight-theme-light" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css" disabled>
     <link rel="stylesheet" href="gaya.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 </head>
 <body>
     <div class="app-layout">
-        <aside id="sidebar">
-            <div class="sidebar-header">
-                <button id="new-chat-btn" class="sidebar-button">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2z"/></svg>
-                    <span>Percakapan baru</span>
-                </button>
-            </div>
-            <div class="chat-history">
-                <p>Terbaru</p>
-                <ul id="chat-history-list"></ul>
-            </div>
-            <div class="sidebar-footer">
-                 <button id="settings-btn" class="sidebar-button">
-                    <svg width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.58-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.44.17-.48.41l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96c-.22-.08-.47 0-.58.22l-1.92 3.32a.49.49 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.36.3.58.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.04.24.24.41.48.41h3.84c.24 0 .44-.17.48.41l.36-2.54c.59-.24 1.13-.56-1.62-.94l2.39.96c.22.08.47 0 .58-.22l1.92-3.32a.49.49 0 0 0-.12-.61zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5s3.5 1.57 3.5 3.5s-1.57 3.5-3.5 3.5"/></svg>
-                    <span>Setelan & bantuan</span>
-                </button>
-            </div>
-        </aside>
-
         <main id="chat-container">
             <header class="chat-header">
-                <button id="menu-toggle-btn" class="header-btn" aria-label="Toggle Menu">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M3 18v-2h18v2zm0-5v-2h18v2zm0-5V6h18v2z"/></svg>
-                </button>
                 <div class="header-title">
                     <span>Fall Asisten AI</span>
                 </div>
             </header>
-            
-            <div id="chat-box">
-                </div>
-
+            <div id="chat-box"></div>
             <footer id="input-area">
                 <div class="input-wrapper">
                     <div id="file-preview-container"></div>
@@ -74,9 +46,7 @@
             </footer>
         </main>
     </div>
-    
-    <div id="sidebar-overlay"></div>
-    <input type="file" id="file-input" hidden accept="image/*">
+    <input type="file" id="file-input" hidden accept="image/*,.pdf,.txt,.md,.csv">
     <script src="chatbot.js"></script>
 </body>
-                            </html>
+</html>
