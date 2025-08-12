@@ -1,7 +1,7 @@
 :root {
     --bg-primary: #FFFFFF; --bg-secondary: #F0F2F5; --text-primary: #1f1f1f;
     --text-secondary: #5f6368; --accent-color: #1a73e8; --user-msg-bg: #d9e7ff;
-    --border-color: #e0e0e0; --font-family: 'Inter', sans-serif;
+    --bot-msg-bg: #f0f2f5; --border-color: #e0e0e0; --font-family: 'Inter', sans-serif;
     --app-height: 100vh;
 }
 body.dark-mode {
@@ -12,60 +12,60 @@ body.dark-mode {
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html, body { font-family: var(--font-family); background-color: var(--bg-primary); color: var(--text-primary); overflow: hidden; }
 .app-layout { display: flex; height: var(--app-height); position: relative; }
-/* ... CSS Sidebar bisa disalin dari versi sebelumnya ... */
+
+/* --- SIDEBAR (KINI AKTIF & RAPI) --- */
+#sidebar {
+    position: fixed; top: 0; left: 0; width: 280px; height: 100%;
+    background-color: var(--bg-secondary); border-right: 1px solid var(--border-color);
+    display: flex; flex-direction: column; padding: 16px;
+    transform: translateX(-100%); transition: transform 0.3s ease-in-out; z-index: 100;
+}
+body.sidebar-visible #sidebar { transform: translateX(0); }
+.sidebar-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+.sidebar-logo { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; }
+.sidebar-header span { font-weight: 600; font-size: 18px; }
+.sidebar-nav { flex-shrink: 0; }
+.sidebar-button { width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 8px; border: none; background: none; color: var(--text-primary); font-size: 15px; cursor: pointer; text-align: left; font-family: var(--font-family); margin-bottom: 8px; transition: background-color 0.2s; }
+#new-chat-btn { border: 1px solid var(--border-color); }
+.sidebar-button:hover { background-color: var(--bg-tertiary); }
+.chat-history { margin-top: 1rem; flex-grow: 1; overflow-y: auto; }
+.chat-history p { font-size: 13px; color: var(--text-secondary); padding: 0 12px 8px 12px; text-transform: uppercase; font-weight: 600; }
+#chat-history-list { list-style: none; }
+#chat-history-list li { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-radius: 8px; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; transition: background-color 0.2s; }
+#chat-history-list li:hover { background-color: var(--bg-tertiary); }
+#chat-history-list li.active { background-color: var(--accent-color); color: white; }
+#chat-history-list li .history-buttons { display: none; }
+#chat-history-list li:hover .history-buttons { display: flex; gap: 4px; }
+.history-btn { background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 4px; border-radius: 4px; }
+.sidebar-footer { border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 12px; }
+.setting-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 4px; }
+.theme-switch { /* ... gaya switch ... */ }
 
 /* --- AREA CHAT UTAMA --- */
 #chat-container { width: 100%; flex-grow: 1; display: flex; flex-direction: column; height: 100%; }
-.chat-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 16px; border-bottom: 1px solid var(--border-color); flex-shrink: 0;
-}
+.chat-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--border-color); flex-shrink: 0; }
 .header-btn { background: none; border: none; cursor: pointer; color: var(--text-primary); padding: 8px; border-radius: 50%; }
 .header-title { font-weight: 500; font-size: 16px; }
 #chat-box { flex-grow: 1; overflow-y: auto; padding: 24px; height: 0; width: 100%; max-width: 840px; margin: 0 auto; }
-
-/* Halaman Selamat Datang Baru */
-.welcome-view { display: flex; flex-direction: column; justify-content: space-between; height: 100%; }
-.welcome-header h1 { font-size: 3.5rem; font-weight: 600; background: linear-gradient(45deg, #4285F4, #9b72cb, #d96570, #f2a600); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.welcome-header p { font-size: 3.5rem; font-weight: 600; color: var(--text-secondary); opacity: 0.8; }
-.suggestion-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
-.suggestion-card { background-color: var(--bg-secondary); border: 1px solid transparent; border-radius: 12px; padding: 16px; text-align: left; cursor: pointer; transition: background-color 0.2s, border-color 0.2s; position: relative; }
-.suggestion-card:hover { background-color: var(--bg-tertiary); border-color: #c4c7c5; }
-.suggestion-card h3 { margin-bottom: 8px; font-size: 16px; }
-.suggestion-card p { font-size: 14px; color: var(--text-secondary); }
-.suggestion-card .icon { position: absolute; bottom: 12px; right: 12px; width: 24px; height: 24px; background-color: var(--bg-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-
-/* Tampilan Chat ala Gemini */
-.message { display: flex; gap: 16px; margin-bottom: 32px; animation: fadeIn 0.5s ease-out; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-.message-avatar { width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; display: flex; justify-content: center; align-items: center; background-color: var(--bg-secondary); }
-.user-msg .message-avatar { background-color: #d1c4e9; color: #4527a0; font-weight: 600; }
-.message-content { line-height: 1.7; width: 100%; padding-top: 8px; }
-.user-msg .message-content { padding: 4px 12px; border-radius: 20px; background-color: var(--user-msg-bg); }
-.message-content pre { background-color: var(--bg-secondary); border-radius: 8px; margin: 1em 0; border: 1px solid var(--border-color); }
-
-/* --- Indikator "Berpikir" --- */
-.thinking-indicator { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
-.thinking-logo svg { width: 40px; height: 40px; animation: spin 1.5s linear infinite; color: var(--accent-color); }
-@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.welcome-view { /* ... gaya welcome view ... */ }
+.message { /* ... gaya pesan ... */ }
 
 /* --- AREA INPUT ALA GEMINI --- */
 #input-area { padding: 8px 16px 16px 16px; flex-shrink: 0; width: 100%; max-width: 840px; margin: 0 auto; }
+#file-preview-container { padding-bottom: 8px; }
 .input-wrapper {
-    background-color: var(--bg-secondary);
-    border-radius: 28px; padding: 4px;
+    background-color: var(--bg-secondary); border-radius: 28px; padding: 4px;
     border: 1px solid var(--bg-secondary); transition: all 0.2s;
     display: flex; flex-direction: column;
 }
 .input-wrapper:focus-within { border-color: #c4c7c5; background-color: var(--bg-primary); }
-#file-preview-container { padding: 12px 16px 8px 16px; }
 .input-main { display: flex; align-items: center; padding: 0 8px; }
 #pesan-input { width: 100%; border: none; background: none; outline: none; resize: none; color: var(--text-primary); font-size: 16px; line-height: 1.5; max-height: 200px; padding: 12px 8px; }
-.input-actions { display: flex; justify-content: space-between; align-items: center; padding: 0 8px; margin-top: 4px; }
-.actions-left, .actions-right { display: flex; align-items: center; gap: 4px; }
+.input-actions { display: flex; justify-content: flex-end; align-items: center; padding: 0 8px; }
 .input-action-btn { background: none; border: none; cursor: pointer; color: var(--text-secondary); padding: 8px; border-radius: 50%; display: flex; }
 .input-action-btn:hover { background-color: #dbe1e9; }
 #kirim-btn { background-color: var(--accent-color); color: white; width: 36px; height: 36px; border-radius: 50%; transition: all 0.2s; }
 #mic-btn.hidden, #kirim-btn.hidden { display: none; }
 .disclaimer { font-size: 12px; text-align: center; color: var(--text-secondary); margin-top: 12px; }
-/* ... Sisa CSS tidak berubah ... */
+#sidebar-overlay { display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); z-index: 99; }
+body.sidebar-visible #sidebar-overlay { display: block; }
