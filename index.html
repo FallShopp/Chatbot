@@ -8,8 +8,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <link rel="stylesheet" id="highlight-theme-light" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css" disabled>
     <link rel="stylesheet" href="gaya.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 </head>
 <body>
     <div class="app-layout">
@@ -20,16 +23,29 @@
             </div>
             <nav class="sidebar-nav">
                 <button id="new-chat-btn" class="sidebar-button">
-                    <span>➕</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2z"/></svg>
                     <span>Obrolan Baru</span>
                 </button>
             </nav>
+            <div class="chat-history">
+                <p>Riwayat</p>
+                <ul id="chat-history-list"></ul>
+            </div>
+            <div class="sidebar-footer">
+                <div class="setting-item">
+                    <span>Mode Tampilan</span>
+                    <label class="theme-switch">
+                        <input type="checkbox" id="theme-switcher">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
         </aside>
 
         <main id="chat-container">
             <header class="chat-header">
                 <button id="menu-toggle-btn" class="header-btn" aria-label="Toggle Menu">
-                     <svg xmlns="http://www.w.3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M3 18v-2h18v2zm0-5v-2h18v2zm0-5V6h18v2z"/></svg>
+                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M3 18v-2h18v2zm0-5v-2h18v2zm0-5V6h18v2z"/></svg>
                 </button>
                 <div class="header-title">
                     <span>Fall Asisten AI</span>
@@ -37,13 +53,10 @@
             </header>
             
             <div id="chat-box">
-                <div class="welcome-view">
-                    <h1>Ask Fall Asisten AI Anything</h1>
-                    <p>Powered by Google Gemini</p>
                 </div>
-            </div>
 
             <footer id="input-area">
+                <div id="file-preview-container"></div>
                 <div class="input-container">
                     <textarea id="pesan-input" placeholder="Message Fall Asisten Ai..." rows="1"></textarea>
                     <div class="action-buttons">
@@ -61,6 +74,7 @@
     </div>
     
     <div id="sidebar-overlay"></div>
+    <input type="file" id="file-input" hidden accept="image/*,.pdf,.txt,.md,.csv">
     <script src="chatbot.js"></script>
 </body>
 </html>
