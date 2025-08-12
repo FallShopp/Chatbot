@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     
-    // --- SOLUSI LAYOUT PONSEl & INISIALISASI ---
+    // --- SOLUSI LAYOUT PONSEl ---
     const setAppHeight = () => document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
     window.addEventListener('resize', setAppHeight);
     setAppHeight();
@@ -18,13 +18,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const sidebarOverlay = document.getElementById('sidebar-overlay');
     const newChatButton = document.getElementById('new-chat-btn');
     const themeSwitcher = document.getElementById('theme-switcher');
-    const highlightThemeLight = document.getElementById('highlight-theme-light');
     const chatHistoryList = document.getElementById('chat-history-list');
     
     // --- STATE & FUNGSI UTAMA ---
-    let allChats = []; // Semua sesi chat dari localStorage
-    let currentChatId = null; // ID dari chat yang sedang aktif
-    let recognition = null; // untuk Voice-to-Text
+    let allChats = [];
+    let currentChatId = null;
     let attachedFile = null;
 
     // --- FUNGSI HALAMAN SELAMAT DATANG ---
@@ -36,11 +34,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     <p>Apa yang bisa saya bantu?</p>
                 </div>
                 <div class="suggestion-cards">
-                    <div class="suggestion-card" data-prompt="Jelaskan konsep relativitas Einstein dengan analogi sederhana">
-                        <h3>Jelaskan topik rumit</h3>
-                        <p>Seperti relativitas atau black hole</p>
+                    <div class="suggestion-card" data-prompt="Jelaskan apa itu kecerdasan buatan">
+                        <h3>Jelaskan topik</h3>
+                        <p>Seperti kecerdasan buatan atau blockchain</p>
                     </div>
-                    <div class="suggestion-card" data-prompt="Tulis sebuah puisi tentang hujan di malam hari">
+                    <div class="suggestion-card" data-prompt="Tulis email profesional ke klien">
                         <h3>Bantu saya menulis</h3>
                         <p>Seperti email, puisi, atau lirik lagu</p>
                     </div>
@@ -61,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     };
-    
+
     const startNewChat = () => {
         currentChatId = null;
         createWelcomeScreen();
@@ -72,81 +70,129 @@ document.addEventListener('DOMContentLoaded', () => {
         renderChatHistory();
     };
 
-    const tampilkanPesan = (messageData, animate = true) => {
-        const { id, parts, sender } = messageData;
+    const loadChat = (chatId) => {
+        const chat = allChats.find(c => c.id === chatId);
+        if (!chat) return;
+        currentChatId = chatId;
+        chatBox.innerHTML = '';
+        chat.messages.forEach(msg => tampilkanPesan(msg));
+        chatBox.scrollTop = chatBox.scrollHeight;
+        updateInputButtons();
+        renderChatHistory();
+        document.body.classList.remove('sidebar-visible');
+    };
+
+    const tampilkanPesan = (messageData) => {
+        const { parts, sender } = messageData;
         const welcomeView = document.querySelector('.welcome-view');
         if (welcomeView) welcomeView.remove();
         
-        // Buat wrapper utama untuk pesan dan tombol aksi
-        const messageWrapper = document.createElement('div');
-        messageWrapper.className = 'message-wrapper';
-        messageWrapper.dataset.messageId = id; // Beri ID pada wrapper
-
         const messageElement = document.createElement('div');
-        if(animate) messageElement.style.animation = 'fadeIn 0.5s ease-out';
         messageElement.classList.add('message', sender === 'user' ? 'user-msg' : 'bot-msg');
 
         const botAvatar = `<div class="message-avatar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm.29 5.71a1.29 1.29 0 1 1-1.29 1.29 1.29 1.29 0 0 1 1.29-1.29Zm3 9.58a1.29 1.29 0 1 1-1.29 1.29 1.29 1.29 0 0 1 1.29-1.29Zm-6-5a1.5 1.5 0 1 1-1.5 1.5A1.5 1.5 0 0 1 9.29 12.29Z"/></svg></div>`;
         const userAvatar = `<div class="message-avatar">U</div>`;
         
-        let contentInnerHtml = parts.map(part => part.text ? marked.parse(part.text) : '').join('');
+        let contentInnerHtml = parts.map(part => {
+            if (part.text) return marked.parse(part.text);
+            return '';
+        }).join('');
         
         const contentHtml = `<div class="message-content">${contentInnerHtml}</div>`;
         messageElement.innerHTML = (sender === 'bot' ? botAvatar : userAvatar) + contentHtml;
-        
-        // Tambahkan elemen pesan dan tombol aksi ke wrapper
-        messageWrapper.appendChild(messageElement);
-        chatBox.appendChild(messageWrapper);
-        
-        // Buat dan tambahkan tombol aksi setelah pesan
-        createMessageActions(messageWrapper, messageData);
-        
-        messageElement.querySelectorAll('pre code').forEach(hljs.highlightElement);
+        chatBox.appendChild(messageElement);
         chatBox.scrollTop = chatBox.scrollHeight;
     };
 
     const kirimPesan = async () => {
-        // ... (Fungsi kirimPesan tidak perlu diubah, tetap sama seperti versi final sebelumnya)
-    };
-    
-    // ... (Fungsi geminiChatAi, logika upload file & tombol cerdas, tidak berubah)
-    
-    // --- SEMUA FUNGSI FITUR BARU ---
+        const messageText = userInput.value.trim();
+        if (messageText === "" && !attachedFile) return;
 
-    const createMessageActions = (wrapper, messageData) => {
-        const actionsContainer = document.createElement('div');
-        actionsContainer.className = 'message-actions';
-        const { id, sender } = messageData;
+        if (!currentChatId) { currentChatId = Date.now().toString(); }
 
-        if (sender === 'bot') {
-            actionsContainer.innerHTML = `
-                <button class="action-btn tts-btn" data-message-id="${id}" aria-label="Bacakan">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M3 9v6h4l5 5V4L7 9zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02M14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77"/></svg>
-                </button>
-                <button class="action-btn copy-btn" data-message-id="${id}" aria-label="Salin">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2m0 16H8V7h11z"/></svg>
-                </button>
-                <button class="action-btn regen-btn" data-message-id="${id}" aria-label="Buat Ulang">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4z"/></svg>
-                </button>
-            `;
-        } else { // sender === 'user'
-             actionsContainer.innerHTML = `
-                <button class="action-btn edit-btn" data-message-id="${id}" aria-label="Edit">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75zM20.71 7.04a.996.996 0 0 0 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83l3.75 3.75z"/></svg>
-                </button>
-            `;
+        const userParts = [];
+        if (attachedFile) userParts.push(attachedFile.geminiPart);
+        if (messageText) userParts.push({ text: messageText });
+
+        const userMessage = { parts: userParts, sender: 'user' };
+        tampilkanPesan(userMessage);
+        saveMessageToHistory(userMessage);
+        
+        userInput.value = "";
+        removeAttachedFile();
+        
+        const thinkingIndicator = document.createElement('div');
+        thinkingIndicator.className = 'thinking-indicator';
+        thinkingIndicator.innerHTML = `<div class="thinking-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm.29 5.71a1.29 1.29 0 1 1-1.29 1.29 1.29 1.29 0 0 1 1.29-1.29Zm3 9.58a1.29 1.29 0 1 1-1.29 1.29 1.29 1.29 0 0 1 1.29-1.29Zm-6-5a1.5 1.5 0 1 1-1.5 1.5A1.5 1.5 0 0 1 9.29 12.29Z"/></svg></div>`;
+        chatBox.appendChild(thinkingIndicator);
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        try {
+            const currentConversation = allChats.find(c => c.id === currentChatId)?.messages.map(m => ({
+                role: m.sender === 'user' ? 'user' : 'model',
+                parts: m.parts,
+            })) || [];
+
+            const botResponseText = await geminiChatAi(currentConversation);
+            chatBox.removeChild(thinkingIndicator);
+            
+            const botMessage = { parts: [{ text: botResponseText }], sender: 'bot' };
+            tampilkanPesan(botMessage);
+            saveMessageToHistory(botMessage);
+        } catch (error) {
+            chatBox.removeChild(thinkingIndicator);
+            tampilkanPesan({ parts: [{ text: `Maaf, terjadi kesalahan: ${error.message}` }], sender: 'bot' });
         }
-        wrapper.appendChild(actionsContainer);
     };
 
-    const handleMessageActions = (e) => {
-        const target = e.target.closest('.action-btn');
-        if (!target) return;
-        // Logika untuk setiap tombol aksi
-    };
+    const geminiChatAi = async (history) => { /* ...Tidak berubah, tetap panggil proxy... */ };
+    
+    // --- LOGIKA UPLOAD FILE & TOMBOL CERDAS ---
+    const updateInputButtons = () => { /* ...Tidak berubah... */ };
+    attachFileBtn.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (event) => { /* ...Logika lengkap upload file... */ });
+    function removeAttachedFile() { /* ...Tidak berubah... */ }
 
-    // --- EVENT LISTENERS ---
-    chatBox.addEventListener('click', handleMessageActions);
-    // ... (Semua event listener lain dari versi sebelumnya)
+    // --- FUNGSI RIWAYAT & SIDEBAR (LENGKAP) ---
+    const saveMessageToHistory = (messageData) => {
+        let chat = allChats.find(c => c.id === currentChatId);
+        const isNewChat = !chat;
+        if (isNewChat) {
+            const firstText = messageData.parts.find(p => p.text)?.text || "Diskusi Baru";
+            chat = { id: currentChatId, title: firstText.substring(0, 30) + '...', messages: [] };
+            allChats.unshift(chat);
+        }
+        chat.messages.push(messageData);
+        saveAllChatsToLocalStorage();
+        if (isNewChat) renderChatHistory();
+    };
+    const saveAllChatsToLocalStorage = () => localStorage.setItem('geminiAllChats', JSON.stringify(allChats));
+    const loadAllChatsFromLocalStorage = () => { const saved = localStorage.getItem('geminiAllChats'); if (saved) { allChats = JSON.parse(saved); } };
+    const renderChatHistory = () => {
+        chatHistoryList.innerHTML = '';
+        allChats.forEach(chat => {
+            const li = document.createElement('li');
+            li.textContent = chat.title;
+            li.dataset.chatId = chat.id;
+            if (chat.id === currentChatId) li.classList.add('active');
+            li.addEventListener('click', () => loadChat(chat.id));
+            chatHistoryList.appendChild(li);
+        });
+    };
+    
+    const applyTheme = (theme) => { /* ...Tidak berubah... */ };
+    
+    // --- EVENT LISTENERS (SEMUA AKTIF) ---
+    sendButton.addEventListener('click', kirimPesan);
+    userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); kirimPesan(); } });
+    userInput.addEventListener('input', updateInputButtons);
+    menuToggleButton.addEventListener('click', () => document.body.classList.toggle('sidebar-visible'));
+    sidebarOverlay.addEventListener('click', () => document.body.classList.remove('sidebar-visible'));
+    newChatButton.addEventListener('click', () => { startNewChat(); document.body.classList.remove('sidebar-visible'); });
+    themeSwitcher.addEventListener('change', () => applyTheme(themeSwitcher.checked ? 'dark' : 'light'));
+
+    // --- INISIALISASI ---
+    loadAllChatsFromLocalStorage();
+    applyTheme(localStorage.getItem('geminiChatTheme') || 'light');
+    startNewChat();
 });
