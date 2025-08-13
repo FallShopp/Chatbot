@@ -7,42 +7,51 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeSidebarBtn = document.getElementById('close-sidebar-btn');
     const sidebar = document.getElementById('sidebar');
     const sidebarOverlay = document.getElementById('sidebar-overlay');
-    const generateButtons = document.querySelectorAll('.generate-btn');
-    const llmDropdownToggle = document.getElementById('llm-dropdown');
-    const llmDropdownMenu = document.querySelector('.dropdown-menu');
-    const llmDropdownItems = document.querySelectorAll('.dropdown-item');
+    const allButtons = document.querySelectorAll('button');
 
-    // Fungsi untuk menampilkan pesan bot
-    const tampilkanPesanBot = (message) => {
+    // --- FUNGSI UTAMA ---
+
+    const tampilkanPesan = (message, sender) => {
         const messageDiv = document.createElement('div');
-        messageDiv.classList.add('chat-message', 'bot-message');
+        messageDiv.classList.add('chat-message', sender === 'user' ? 'user-message' : 'bot-message');
+        
+        const avatarInitial = sender === 'user' ? 'ME' : 'AI';
+
         messageDiv.innerHTML = `
-            <div class="avatar">AI</div>
+            <div class="avatar">${avatarInitial}</div>
             <div class="message-content">${message}</div>
         `;
         chatBox.appendChild(messageDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
     };
 
-    // Event listener untuk mengirim pesan
-    kirimBtn.addEventListener('click', () => {
+    const kirimPesan = () => {
         const pesan = pesanInput.value.trim();
         if (pesan) {
-            const userMessageDiv = document.createElement('div');
-            userMessageDiv.classList.add('chat-message', 'user-message');
-            userMessageDiv.innerHTML = `
-                <div class="avatar">U</div>
-                <div class="message-content">${pesan}</div>
-            `;
-            chatBox.appendChild(userMessageDiv);
+            tampilkanPesan(pesan, 'user');
             pesanInput.value = '';
-            // Ganti ini dengan panggilan API Gemini/OpenAI Anda yang sebenarnya
+            
+            // Tampilkan loading/typing indicator
+            const loadingDiv = document.createElement('div');
+            loadingDiv.classList.add('chat-message', 'bot-message');
+            loadingDiv.innerHTML = `
+                <div class="avatar">AI</div>
+                <div class="message-content">...</div>
+            `;
+            chatBox.appendChild(loadingDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+            
+            // Simulasi respons AI
             setTimeout(() => {
-                tampilkanPesanBot('Ini adalah respons otomatis. Fitur AI belum terhubung.');
-            }, 1000);
+                chatBox.removeChild(loadingDiv); // Hapus loading
+                tampilkanPesan('Ini adalah respons otomatis. Fitur AI yang sebenarnya perlu dihubungkan.', 'bot');
+            }, 1500);
         }
-    });
+    };
+    
+    // --- EVENT LISTENERS ---
 
+    kirimBtn.addEventListener('click', kirimPesan);
     pesanInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -50,55 +59,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Toggle sidebar
-    openSidebarBtn.addEventListener('click', () => {
-        sidebar.classList.add('open');
-        sidebarOverlay.style.display = 'block';
-        setTimeout(() => sidebarOverlay.classList.add('open'), 10);
-    });
-
-    const closeSidebar = () => {
-        sidebar.classList.remove('open');
-        sidebarOverlay.classList.remove('open');
-        setTimeout(() => sidebarOverlay.style.display = 'none', 300);
+    const toggleSidebar = () => {
+        sidebar.classList.toggle('open');
+        sidebarOverlay.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
     };
 
-    closeSidebarBtn.addEventListener('click', closeSidebar);
-    sidebarOverlay.addEventListener('click', closeSidebar);
+    openSidebarBtn.addEventListener('click', toggleSidebar);
+    closeSidebarBtn.addEventListener('click', toggleSidebar);
+    sidebarOverlay.addEventListener('click', toggleSidebar);
 
-    // Event listener untuk tombol "Chat Baru" di sidebar
     newChatSidebarBtn.addEventListener('click', () => {
-        chatBox.innerHTML = `
-            <div class="chat-message bot-message">
-                <div class="avatar">AI</div>
-                <div class="message-content">Memulai chat baru...</div>
-            </div>
-        `;
-        closeSidebar();
+        chatBox.innerHTML = ''; // Kosongkan chat
+        tampilkanPesan('Memulai chat baru...', 'bot');
+        toggleSidebar();
     });
 
-    // Event listeners untuk tombol-tombol generate media
-    generateButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            alert(`Fitur ${button.textContent.trim()} akan segera hadir!`);
-        });
-    });
-
-    // Dropdown LLM
-    llmDropdownToggle.addEventListener('click', (e) => {
-        e.stopPropagation();
-        llmDropdownMenu.classList.toggle('show');
-    });
-
-    llmDropdownItems.forEach(item => {
-        item.addEventListener('click', (e) => {
-            llmDropdownToggle.childNodes[1].textContent = ` ${e.target.textContent} `;
-        });
-    });
-
-    window.addEventListener('click', (e) => {
-        if (!llmDropdownToggle.contains(e.target)) {
-            llmDropdownMenu.classList.remove('show');
+    // Tambahkan notifikasi untuk semua tombol lain yang belum berfungsi
+    allButtons.forEach(button => {
+        if (!button.id || !['kirim-btn', 'open-sidebar-btn', 'close-sidebar-btn', 'new-chat-sidebar-btn'].includes(button.id)) {
+            button.addEventListener('click', (e) => {
+                const buttonText = e.currentTarget.textContent.trim();
+                if (buttonText) {
+                    alert(`Fitur "${buttonText}" belum diimplementasikan.`);
+                }
+            });
         }
     });
 });
