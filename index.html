@@ -30,14 +30,11 @@
                 <button class="generate-btn edit-video-btn">🎬 Edit Video</button>
             </div>
             <div class="sidebar-navigation">
-                <button class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M10 20v-6h4v6h5v-8h3L12 3L2 12h3v8z"/></svg> Home</button>
-                <button class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M17 10.5V7c0-1.66-1.34-3-3-3s-3 1.34-3 3v3.5l-2.29 2.29c-.39.39-.39 1.02 0 1.41s1.02.39 1.41 0L11 10.91V14c0 1.66 1.34 3 3 3s3-1.34 3-3v-3.09l2.29 2.29c.39.39 1.02.39 1.41 0s.39-1.02 0-1.41L17 10.5zM12 22c5.52 0 10-4.48 10-10S17.52 2 12 2S2 6.48 2 12s4.48 10 10 10z"/></svg> Riwayat Media</button>
-            </div>
-            <div class="sidebar-chat-history">
-                <p>RIWAYAT CHAT</p>
-                <p class="no-history">No chat history yet</p>
+                <button class="nav-item">🏠 Home</button>
+                <button class="nav-item">🖼️ Riwayat Media</button>
             </div>
         </aside>
+
         <div class="main-content">
             <header>
                 <button id="open-sidebar-btn" aria-label="Buka Sidebar">☰</button>
@@ -47,39 +44,40 @@
                     <button id="more-btn" aria-label="Lainnya"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M12 16a2 2 0 0 1 2 2a2 2 0 0 1-2 2a2 2 0 0 1-2-2a2 2 0 0 1 2-2m0-6a2 2 0 0 1 2 2a2 2 0 0 1-2 2a2 2 0 0 1-2-2a2 2 0 0 1 2-2m0-6a2 2 0 0 1 2 2a2 2 0 0 1-2 2a2 2 0 0 1-2-2a2 2 0 0 1 2-2Z"/></svg></button>
                 </div>
             </header>
-            <div class="llm-selector">
-                <label for="llm-dropdown">Pilih LLM / Model AI</label>
-                <div class="dropdown">
-                    <button class="dropdown-toggle" id="llm-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M12 17.27L18.15 11.12l-1.41-1.41L12 14.44l-4.74-4.73l-1.41 1.41L12 17.27m-5.46-9.5a3.25 3.25 0 0 1 6.5 0a3.25 3.25 0 0 1-6.5 0M12 3a9 9 0 0 1 9 9a9 9 0 0 1-9 9a9 9 0 0 1-9-9a9 9 0 0 1 9-9Z"/></svg>
-                        Asisten AI: Turbo
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M7 10l5 5l5-5z"/></svg>
-                    </button>
-                    <div class="dropdown-menu" aria-labelledby="llm-dropdown">
-                        <a class="dropdown-item" href="#">Model 1</a>
-                        <a class="dropdown-item" href="#">Model 2</a>
-                        <a class="dropdown-item" href="#">Model 3</a>
+
+            <div id="chat-box-wrapper">
+                <div class="llm-selector">
+                    <label>Pilih LLM / Model AI</label>
+                    <div class="dropdown">
+                        <button class="dropdown-toggle" id="llm-dropdown">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M12 17.27L18.15 11.12l-1.41-1.41L12 14.44l-4.74-4.73l-1.41 1.41L12 17.27m-5.46-9.5a3.25 3.25 0 0 1 6.5 0a3.25 3.25 0 0 1-6.5 0M12 3a9 9 0 0 1 9 9a9 9 0 0 1-9 9a9 9 0 0 1-9-9a9 9 0 0 1 9-9Z"/></svg>
+                            Asisten AI: Turbo
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M7 10l5 5l5-5z"/></svg>
+                        </button>
                     </div>
                 </div>
-            </div>
-            <div id="chat-box">
-                <div class="chat-message bot-message">
-                    <div class="avatar">AI</div>
-                    <div class="message-content">Halo bro & sis! Welcome to Asisten AI. Ada yang bisa gua bantu?</div>
+                
+                <div class="action-buttons-container">
+                     <button class="action-btn generate-image-btn">Buat Gambar</button>
+                     <button class="action-btn edit-image-btn">Edit Gambar</button>
+                     <button class="action-btn generate-video-btn">Buat Video</button>
+                     <button class="action-btn edit-video-btn">Edit Video</button>
                 </div>
+
+                <div id="chat-box">
+                    </div>
             </div>
+
             <footer>
                 <div class="input-container">
-                    <div class="input-media-actions">
-                        <button class="media-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M3 18h18v-2H3v2Zm-1-4h18v-2H2v2Zm0-4h18V8H2v2Zm1-4h18V4H3v2Z"/></svg></button>
-                        <button class="media-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2Z"/></svg></button>
-                    </div>
+                    <button class="media-btn" aria-label="Lampirkan Gambar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg></button>
+                    <button class="media-btn" aria-label="Salin"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></button>
                     <textarea id="pesan-input" placeholder="Ketik pesan atau pertanyaanmu disini"></textarea>
                     <button id="kirim-btn" aria-label="Kirim Pesan"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="m2.01 21L23 12L2.01 3L2 10l15 2l-15 2z"/></svg></button>
                 </div>
                 <div class="footer-suggestions">
-                    <button class="suggestion-btn"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M12 22q-2.075 0-3.9-.788t-3.225-2.137q-1.35-1.35-2.137-3.225T2 12q0-2.075.788-3.9t2.137-3.225q1.35-1.35 3.225-2.138T12 2q2.075 0 3.9.787t3.225 2.138q1.35 1.35 2.138 3.225T22 12q0 2.075-.787 3.9t-2.138 3.225q-1.35 1.35-3.225 2.137T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m-4-6v-2h8v2h-8Z"/></svg> Ide Percakapan</button>
-                    <button class="credit-btn">Sisa Kredit Anda: <span id="credit-amount">90</span></button>
+                    <button class="suggestion-btn">💡 Ide Percakapan</button>
+                    <button class="credit-btn">Sisa Kredit Anda: 90</button>
                 </div>
             </footer>
         </div>
@@ -87,4 +85,4 @@
     </div>
     <script src="chatbot.js"></script>
 </body>
-                </html>
+                    </html>
