@@ -1,56 +1,104 @@
-// File: chatbot.js (Diperbarui untuk memanggil backend OpenAI)
-
 document.addEventListener('DOMContentLoaded', () => {
-    // ... (Semua kode dari versi final sebelumnya tetap sama, dari atas hingga fungsi geminiChatAi)
-    
-    // --- SOLUSI LAYOUT PONSEl ---
-    const setAppHeight = () => document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
-    window.addEventListener('resize', setAppHeight);
-    setAppHeight();
-    
-    // --- SELEKSI ELEMEN DOM LENGKAP ---
-    // (pastikan semua seleksi elemen Anda ada di sini)
     const chatBox = document.getElementById('chat-box');
-    const userInput = document.getElementById('pesan-input');
-    const sendButton = document.getElementById('kirim-btn');
-    // ... dan seterusnya
+    const pesanInput = document.getElementById('pesan-input');
+    const kirimBtn = document.getElementById('kirim-btn');
+    const newChatSidebarBtn = document.getElementById('new-chat-sidebar-btn');
+    const openSidebarBtn = document.getElementById('open-sidebar-btn');
+    const closeSidebarBtn = document.getElementById('close-sidebar-btn');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
+    const generateButtons = document.querySelectorAll('.generate-btn');
+    const llmDropdownToggle = document.getElementById('llm-dropdown');
+    const llmDropdownMenu = document.querySelector('.dropdown-menu');
+    const llmDropdownItems = document.querySelectorAll('.dropdown-item');
 
-    // --- STATE & FUNGSI UTAMA ---
-    // (semua fungsi seperti startNewChat, tampilkanPesan, dll tetap sama)
-
-    const kirimPesan = async () => {
-        const messageText = userInput.value.trim();
-        if (messageText === "") return;
-
-        // ... (sisa fungsi kirimPesan tidak berubah)
-
-        try {
-            // Panggil fungsi API yang baru
-            const botResponse = await callChatApi(conversationHistory); 
-            // ... (sisa fungsi tidak berubah)
-        } catch (error) {
-            // ... (sisa fungsi tidak berubah)
-        }
+    // Fungsi untuk menampilkan pesan bot
+    const tampilkanPesanBot = (message) => {
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('chat-message', 'bot-message');
+        messageDiv.innerHTML = `
+            <div class="avatar">AI</div>
+            <div class="message-content">${message}</div>
+        `;
+        chatBox.appendChild(messageDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
     };
-    
-    // --- PERUBAHAN NAMA & URL PADA FUNGSI INI ---
-    const callChatApi = async (history) => {
-        // GANTI /api/gemini MENJADI /api/chat
-        const proxyUrl = '/api/chat'; 
-        
-        const response = await fetch(proxyUrl, { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify({ history })
+
+    // Event listener untuk mengirim pesan
+    kirimBtn.addEventListener('click', () => {
+        const pesan = pesanInput.value.trim();
+        if (pesan) {
+            const userMessageDiv = document.createElement('div');
+            userMessageDiv.classList.add('chat-message', 'user-message');
+            userMessageDiv.innerHTML = `
+                <div class="avatar">U</div>
+                <div class="message-content">${pesan}</div>
+            `;
+            chatBox.appendChild(userMessageDiv);
+            pesanInput.value = '';
+            // Ganti ini dengan panggilan API Gemini/OpenAI Anda yang sebenarnya
+            setTimeout(() => {
+                tampilkanPesanBot('Ini adalah respons otomatis. Fitur AI belum terhubung.');
+            }, 1000);
+        }
+    });
+
+    pesanInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            kirimBtn.click();
+        }
+    });
+
+    // Toggle sidebar
+    openSidebarBtn.addEventListener('click', () => {
+        sidebar.classList.add('open');
+        sidebarOverlay.style.display = 'block';
+        setTimeout(() => sidebarOverlay.classList.add('open'), 10);
+    });
+
+    const closeSidebar = () => {
+        sidebar.classList.remove('open');
+        sidebarOverlay.classList.remove('open');
+        setTimeout(() => sidebarOverlay.style.display = 'none', 300);
+    };
+
+    closeSidebarBtn.addEventListener('click', closeSidebar);
+    sidebarOverlay.addEventListener('click', closeSidebar);
+
+    // Event listener untuk tombol "Chat Baru" di sidebar
+    newChatSidebarBtn.addEventListener('click', () => {
+        chatBox.innerHTML = `
+            <div class="chat-message bot-message">
+                <div class="avatar">AI</div>
+                <div class="message-content">Memulai chat baru...</div>
+            </div>
+        `;
+        closeSidebar();
+    });
+
+    // Event listeners untuk tombol-tombol generate media
+    generateButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            alert(`Fitur ${button.textContent.trim()} akan segera hadir!`);
         });
-        if (!response.ok) { 
-            const errorData = await response.json(); 
-            throw new Error(errorData.error || `Error dari server: ${response.status}`); 
+    });
+
+    // Dropdown LLM
+    llmDropdownToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        llmDropdownMenu.classList.toggle('show');
+    });
+
+    llmDropdownItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            llmDropdownToggle.childNodes[1].textContent = ` ${e.target.textContent} `;
+        });
+    });
+
+    window.addEventListener('click', (e) => {
+        if (!llmDropdownToggle.contains(e.target)) {
+            llmDropdownMenu.classList.remove('show');
         }
-        const data = await response.json();
-        return data.text;
-    };
-    
-    // --- Sisa file JavaScript (Event listeners & Inisialisasi) tetap sama ---
-    // Pastikan semua event listener Anda (untuk tombol, input, dll) ada di sini
+    });
 });
