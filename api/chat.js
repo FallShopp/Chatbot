@@ -1,5 +1,4 @@
 // File: chatbot.js (Diperbarui untuk memanggil backend OpenAI)
-
 document.addEventListener('DOMContentLoaded', () => {
     // ... (Semua kode dari versi final sebelumnya tetap sama, dari atas hingga fungsi geminiChatAi)
     
