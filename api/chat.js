@@ -1,56 +1,56 @@
-// File: /api/chat.js (Backend Baru untuk OpenAI)
+// File: chatbot.js (Diperbarui untuk memanggil backend OpenAI)
 
-import OpenAI from 'openai';
+document.addEventListener('DOMContentLoaded', () => {
+    // ... (Semua kode dari versi final sebelumnya tetap sama, dari atas hingga fungsi geminiChatAi)
+    
+    // --- SOLUSI LAYOUT PONSEl ---
+    const setAppHeight = () => document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+    window.addEventListener('resize', setAppHeight);
+    setAppHeight();
+    
+    // --- SELEKSI ELEMEN DOM LENGKAP ---
+    // (pastikan semua seleksi elemen Anda ada di sini)
+    const chatBox = document.getElementById('chat-box');
+    const userInput = document.getElementById('pesan-input');
+    const sendButton = document.getElementById('kirim-btn');
+    // ... dan seterusnya
 
-export const config = {
-  runtime: 'edge',
-};
+    // --- STATE & FUNGSI UTAMA ---
+    // (semua fungsi seperti startNewChat, tampilkanPesan, dll tetap sama)
 
-// Inisialisasi OpenAI client dengan API Key dari Environment Variable
-// PENTING: Nama variabel kini OPENAI_API_KEY
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+    const kirimPesan = async () => {
+        const messageText = userInput.value.trim();
+        if (messageText === "") return;
 
-export default async function handler(req) {
-  if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method Not Allowed' }), { status: 405 });
-  }
+        // ... (sisa fungsi kirimPesan tidak berubah)
 
-  try {
-    const { history } = await req.json();
-    if (!history) { throw new Error('History is required.') };
-
-    // Transformasi format pesan dari format kita ke format yang dimengerti OpenAI
-    // Gemini: { role: 'user', parts: [{ text: '...' }] }
-    // OpenAI: { role: 'user', content: '...' }
-    const messagesForOpenAI = history.map(message => ({
-      role: message.role === 'model' ? 'assistant' : 'user', // OpenAI menggunakan 'assistant' untuk AI
-      content: message.parts[0].text,
-    }));
-
-    // Menambahkan instruksi sistem yang konsisten
-    const systemMessage = {
-      role: 'system',
-      content: "Anda adalah 'Fall Asisten AI', sebuah asisten AI yang ramah, canggih, dan selalu siap membantu."
+        try {
+            // Panggil fungsi API yang baru
+            const botResponse = await callChatApi(conversationHistory); 
+            // ... (sisa fungsi tidak berubah)
+        } catch (error) {
+            // ... (sisa fungsi tidak berubah)
+        }
     };
-
-    // Panggil API OpenAI
-    const chatCompletion = await openai.chat.completions.create({
-        messages: [systemMessage, ...messagesForOpenAI],
-        model: 'gpt-4o-mini', // Menggunakan model terbaru dan efisien dari OpenAI
-    });
-
-    const responseText = chatCompletion.choices[0].message.content;
-
-    // Kirim kembali jawaban ke frontend
-    return new Response(JSON.stringify({ text: responseText }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
-
-  } catch (error) {
-    console.error("Error in OpenAI proxy function:", error);
-    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
-  }
-}
+    
+    // --- PERUBAHAN NAMA & URL PADA FUNGSI INI ---
+    const callChatApi = async (history) => {
+        // GANTI /api/gemini MENJADI /api/chat
+        const proxyUrl = '/api/chat'; 
+        
+        const response = await fetch(proxyUrl, { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify({ history })
+        });
+        if (!response.ok) { 
+            const errorData = await response.json(); 
+            throw new Error(errorData.error || `Error dari server: ${response.status}`); 
+        }
+        const data = await response.json();
+        return data.text;
+    };
+    
+    // --- Sisa file JavaScript (Event listeners & Inisialisasi) tetap sama ---
+    // Pastikan semua event listener Anda (untuk tombol, input, dll) ada di sini
+});
